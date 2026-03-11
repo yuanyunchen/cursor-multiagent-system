@@ -62,6 +62,7 @@ Key principles:
 ├── scripts/
 │   └── deploy.sh             # Deploy core files to Cursor config
 ├── history.md                # Version history
+├── llm.md                    # Workspace guide for agent development iterations
 └── README.md
 ```
 
