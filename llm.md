@@ -27,7 +27,7 @@ general-coding-agent/
 │       ├── <test-name>_plan.md
 │       └── <files>/              #   Supporting files (diffs, screenshots, logs)
 ├── results/                      # Agent output from test runs
-│   └── <test-name>/              #   Mirrors test folder name
+│   └── <version>_<date>/         #   Version and date provided at test time
 │       └── <output-files>        #   Whatever the agent produces
 ├── scripts/
 │   └── deploy.sh                 # Copy core/ files to Cursor config directories
@@ -52,7 +52,7 @@ general-coding-agent/
 | Directories | lowercase, hyphen-separated | `cv2-homework3` |
 | Agent files | lowercase, hyphen-separated `.md` | `qa-specialist.md` |
 | Test folders | descriptive, hyphen-separated | `aml-assignment1` |
-| Results folders | same name as test folder | `results/aml-assignment1/` |
+| Results folders | `<version>_<date>` (version and date given at test time) | `results/v1_0310/` |
 | Version dirs under iterations/ | `v<N>` | `v1`, `v2` |
 | Self-reflection files | `<test-name>_self_reflection.md` | `cv2-homework3_self_reflection.md` |
 | Plan files | `<test-name>_plan.md` | `cv2-homework3_plan.md` |
@@ -83,10 +83,10 @@ Each test case is a folder under `tests/` with a `prompt.txt` and input files.
 ```
 Task: <one-sentence description>
 Input: <relative paths from project root, comma-separated>
-Output: <relative paths under results/, comma-separated>
+Output: results/<version>_<date>/<output-files>
 ```
 
-All paths are relative to the project root (`general-coding-agent/`). Input paths point to `tests/<test-name>/...`, output paths point to `results/<test-name>/...`.
+All paths are relative to the project root (`general-coding-agent/`). Input paths point to `tests/<test-name>/...`. Output paths use `results/<version>_<date>/` — the actual version and date are provided when running the test.
 
 ### Running a Test
 
@@ -99,11 +99,11 @@ All paths are relative to the project root (`general-coding-agent/`). Input path
 
 ## Results
 
-Agent output from test runs is saved under `results/`, mirroring the test folder name:
+Agent output from test runs is saved under `results/<version>_<date>/`. The version and date are provided at test time (e.g., `v1_0310`).
 
 ```
 results/
-└── <test-name>/              # Same name as tests/<test-name>/
+└── <version>_<date>/         # e.g. v1_0310, v2_0315
     └── <output-files>        # Whatever the agent produced
 ```
 
