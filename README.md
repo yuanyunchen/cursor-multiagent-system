@@ -50,23 +50,32 @@ Key principles:
 
 ```
 .
-├── agent.md                  # Orchestrator definition (Cursor command)
-├── subagents/
-│   ├── debugger.md           # Targeted fixer
-│   ├── designer.md           # Visual deliverable creator
-│   ├── executor.md           # General-purpose implementer
-│   ├── file-explorer.md      # Document extraction & organization
-│   ├── qa-specialist.md      # Output quality inspector
-│   └── verifier.md           # Per-item checker
-└── iterations/               # Development logs and self-reflections
+├── core/
+│   ├── agent.md              # Orchestrator definition (Cursor command)
+│   └── subagents/
+│       ├── debugger.md       # Targeted fixer
+│       ├── designer.md       # Visual deliverable creator
+│       ├── executor.md       # General-purpose implementer
+│       ├── file-explorer.md  # Document extraction & organization
+│       ├── qa-specialist.md  # Output quality inspector
+│       └── verifier.md       # Per-item checker
+├── scripts/
+│   └── deploy.sh             # Deploy core files to Cursor config
+├── history.md                # Version history
+└── README.md
 ```
 
 ## Setup
 
-These files are designed as [Cursor IDE](https://cursor.com/) agent definitions:
+Deploy the agent definitions to [Cursor IDE](https://cursor.com/):
 
-- `agent.md` → Place at `~/.cursor/commands/agent.md` (custom command)
-- `subagents/*.md` → Place at `~/.cursor/agents/` (subagent definitions)
+```bash
+./scripts/deploy.sh
+```
+
+This copies:
+- `core/agent.md` → `~/.cursor/commands/agent.md`
+- `core/subagents/*.md` → `~/.cursor/agents/`
 
 ## Model Selection
 
