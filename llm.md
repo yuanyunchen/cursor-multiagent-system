@@ -36,7 +36,7 @@ general-coding-agent/
 │   └── <version>/
 │       └── <test-name>/
 │           └── <output-files>
-├── current -> iterations/current     # Symlink to active workspace (versioned at iteration time)
+├── current -> iterations/<version>  # Symlink to current version's iteration files
 ├── scripts/
 │   └── deploy.sh                 # Sync core/ to Cursor; --archive saves to current iteration
 ├── history.md                    # Version history (append-only)
@@ -70,14 +70,12 @@ general-coding-agent/
 
 ```
 Task: <one-sentence description>
-Input: general-coding-agent/tests/<test-name>/ (file1, file2, ...)
-You are only allowed to explore files in the Input directory. Do not look elsewhere.
+Input: general-coding-agent/tests/<test-name>/<file>, ...
 Output: general-coding-agent/results/<version>/<test-name>/ (file1, file2, ...)
 ```
 
-- Input and Output: single directory path; list specific files in parentheses.
 - All paths include `general-coding-agent/` prefix so outputs stay inside the project.
-- Scope line (after Input): restricts agent to Input directory only.
+- Output: single directory path; list specific files in parentheses.
 - Version in Output is provided at test time.
 
 ---
@@ -122,16 +120,15 @@ Follow these when modifying any file in `core/`.
 
 ```
 iterations/
-├── current/                                    # Active workspace (symlinked from ./current)
-│   ├── requirements/
-│   └── files/
-├── v1.2/                                       # Versioned at iteration time
-│   ├── requirements/
-│   │   └── v1.2-changes.md
-│   ├── files/
-│   │   └── core/                               # Archived core/ snapshot
-└── v1.1/
+└── v1/
     ├── requirements/
+    │   ├── cost-aware-and-model-selection.md
+    │   └── planning-reflection-filesystem.md
+    ├── problems.md
+    ├── code_review.md
+    ├── human_feedback.md
+    ├── cv2-homework3_self_reflection.md
+    ├── cv2-homework3_plan.md
     └── files/
 ```
 
@@ -158,38 +155,43 @@ iterations/
 
 ## Version Transition
 
-**How it works:** During development, work directly in `current/` (which points to `iterations/current/`). Version numbers are only assigned at iteration time. When the user says "iterate" or "commit version," the user provides the version number (e.g., v1.3).
+When the user says "commit to next version" (or similar), run this procedure. The user provides the target version number (e.g., v2).
 
-### Phase 1: Finalize
+### Phase 1: Finalize current version workspace
 
-- [ ] **Requirements sync.** Check `current/requirements/` — write or update requirements files to match what was actually implemented.
-- [ ] **Consistency check.** `<role>` aligns with `<rules>`, `<team>` matches subagent YAMLs, rules don't contradict, `<workflow>` references valid names.
+- [ ] **Requirements sync.** Check `current/requirements/` for each feature changed in this version:
+  - File missing → create it from the implemented design (what was agreed on, not the raw conversation).
+  - File exists → verify it matches the actual implementation. If requirements evolved during implementation, update the file to reflect the final agreed design.
+- [ ] **Workspace completeness.** Ensure `current/` contains relevant artifacts: `problems.md`, `code_review.md`, `human_feedback.md`, self-reflection and plan files as applicable.
 
-### Phase 2: Deploy and archive
+### Phase 2: Consistency check
+
+Run the cross-file consistency check (see Agent Design Principles):
+- [ ] `<role>` aligns with `<rules>`.
+- [ ] `<team>` table descriptions match each subagent's YAML `description` field.
+- [ ] Rules don't contradict each other.
+- [ ] `<workflow>` references valid rule numbers and section names.
+- [ ] Never rename XML tags in `agent.md` (`<role>`, `<team>`, `<workspace>`, `<rules>`, `<workflow>`) without checking all references.
+- Report any issues before proceeding.
+
+### Phase 3: Deploy and archive
 
 ```bash
 ./scripts/deploy.sh --archive
 ```
 
-Deploys `core/` to Cursor and archives to `current/files/core/`.
+This deploys `core/` to Cursor AND archives `core/` to `current/files/core/` (snapshot of this version's agent definitions). Verify deployed files match source with diff.
 
-### Phase 3: Version the current workspace
+### Phase 4: Version transition
 
 ```bash
-mv iterations/current iterations/<version>
-mkdir -p iterations/current/requirements iterations/current/files
-rm current && ln -s iterations/current current
+mkdir -p iterations/<new-version>/requirements iterations/<new-version>/files
+rm current && ln -s iterations/<new-version> current
 ```
 
-Rename the current workspace to the version number, then create a fresh `current`.
+Append a version entry to `history.md` (never modify past entries). Include: what changed, why, which files were modified, which test cases validated it.
 
-### Phase 4: History
-
-Append a version entry to `history.md` (never modify past entries).
-
-### Phase 5: Commit
-
-Default: commit and push automatically. Skip only if the user says not to or if earlier phases flagged unresolved problems.
+### Phase 5: Commit (if requested)
 
 ```bash
 git add -A && git commit -m "v<N>: <short summary>" && git push
