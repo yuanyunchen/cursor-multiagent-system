@@ -11,7 +11,7 @@ Orchestrator (agent.md)
 ├── debugger        — Targeted fixes from QA issue lists (scoped to allowed files)
 ├── qa-specialist   — Read-only output quality inspection (Full / Lightweight modes)
 ├── verifier        — Fast per-item PASS/FAIL checks against explicit criteria
-├── file-explorer   — Document extraction & organization (PDF, DOCX, PPTX)
+├── file-extractor  — Document & web page content extraction (PDF, DOCX, PPTX, URLs)
 ├── explore         — (built-in) Codebase navigation and keyword search
 ├── shell           — (built-in) Standalone command execution
 └── browser-use     — (built-in) Browser automation and web app testing
@@ -56,7 +56,7 @@ Key principles:
 │       ├── debugger.md       # Targeted fixer
 │       ├── designer.md       # Visual deliverable creator
 │       ├── executor.md       # General-purpose implementer
-│       ├── file-explorer.md  # Document extraction & organization
+│       ├── file-extractor.md # Document & web page content extraction
 │       ├── qa-specialist.md  # Output quality inspector
 │       └── verifier.md       # Per-item checker
 ├── scripts/
@@ -89,4 +89,4 @@ Each subagent dispatch supports a `model` parameter:
 | QA Specialist | default (full) | Use fast for lightweight/intermediate checks |
 | verifier | fast | — |
 | debugger | fast | Complex multi-file fixes |
-| file-explorer | default | — |
+| file-extractor | fast | — |

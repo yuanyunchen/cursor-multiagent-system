@@ -12,33 +12,44 @@ general-coding-agent/
 │   ├── agent.md                  #   Orchestrator (deploys to ~/.cursor/commands/)
 │   └── subagents/                #   Subagent definitions (deploy to ~/.cursor/agents/)
 │       ├── debugger.md
-│       ├── designer.md
+│       ├── report-writer.md
 │       ├── executor.md
-│       ├── file-explorer.md
+│       ├── file-extractor.md
 │       ├── qa-specialist.md
 │       └── verifier.md
+├── skills/                       # Skill files referenced by subagents (deploy to ~/.cursor/skills/)
+│   ├── file-content-extraction/  #   PDF/DOCX/PPTX extraction instructions
+│   │   └── SKILL.md
+│   ├── webpage-content-extraction/ # Web page extraction instructions
+│   │   └── SKILL.md
+│   ├── report-builder/            #   Report build tools (scripts, templates, styles)
+│   │   ├── scripts/              #     build.py, validate_pdf.py, longtable_to_tabular.lua
+│   │   ├── templates/            #     iclr/, cvpr/ (.sty, .bst)
+│   │   └── styles/               #     blue-clean.html
+│   └── pptx/                     #   Slide creation/editing skill (full suite)
+├── scripts/                      # Utility scripts
+│   └── deploy.sh                 #   Sync core/, skills/ to Cursor
 ├── tests/                        # Test cases for evaluating agent behavior
 │   └── <test-name>/
 │       ├── prompt.txt            #   Agent command (Task / Input / Output)
 │       └── <input-files>         #   PDF, PPTX, images, code, etc.
 ├── iterations/                   # Development logs organized by version
-│   └── <version>/
-│       ├── requirements/          #   Feature requirements for this version
-│       │   └── <feature-name>.md
-│       ├── problems.md            #   Consolidated issue list
-│       ├── code_review.md         #   Code review findings
-│       ├── human_feedback.md      #   User feedback from test runs
-│       ├── <test-name>_self_reflection.md
-│       ├── <test-name>_plan.md
-│       └── files/                #   Archived core/ snapshot, diffs, screenshots, logs
-│           └── core/             #   Snapshot of core/ at this version
+│   ├── current/                  #   Active iteration (renamed to <version>/ on transition)
+│   │   ├── requirements/         #   Feature requirements for this version
+│   │   │   └── <feature-name>.md
+│   │   ├── problems.md           #   Consolidated issue list
+│   │   ├── code_review.md        #   Code review findings
+│   │   ├── human_feedback.md     #   User feedback from test runs
+│   │   ├── <test-name>_self_reflection.md
+│   │   ├── <test-name>_plan.md
+│   │   └── files/                #   Archived core/ snapshot, diffs, screenshots, logs
+│   │       └── core/             #   Snapshot of core/ at this version
+│   └── <version>/                #   Past iterations (archived from current/)
 ├── results/                      # Agent output from test runs
-│   └── <version>/
+│   └── current/                 #   Active test run output (renamed to <version>/ on version transition)
 │       └── <test-name>/
 │           └── <output-files>
-├── current -> iterations/<version>  # Symlink to current version's iteration files
-├── scripts/
-│   └── deploy.sh                 # Sync core/ to Cursor; --archive saves to current iteration
+├── current -> iterations/current    # Symlink to active iteration workspace
 ├── history.md                    # Version history (append-only)
 ├── llm.md                        # This file
 ├── README.md                     # Public-facing documentation
@@ -49,7 +60,7 @@ general-coding-agent/
 
 | Tracked | Not tracked |
 |---------|-------------|
-| `core/`, `scripts/`, `README.md`, `history.md`, `llm.md`, `.gitignore` | `tests/`, `iterations/`, `results/` |
+| `core/`, `skills/`, `scripts/`, `README.md`, `history.md`, `llm.md`, `.gitignore` | `tests/`, `iterations/`, `results/` |
 
 ---
 
@@ -60,9 +71,9 @@ general-coding-agent/
 | Directories | lowercase, hyphen-separated | `cv2-homework3` |
 | Agent files | lowercase, hyphen-separated `.md` | `qa-specialist.md` |
 | Test folders | descriptive, hyphen-separated | `aml-assignment1` |
-| Results folders | `<version>/<test-name>/` | `general-coding-agent/results/v1.2/aml-assignment1/` |
+| Results folders | `current/<test-name>/` (renamed to `<version>/` on transition) | `general-coding-agent/results/current/aml-assignment1/` |
 | Session name | `<version>_<test-name>_<model>` | `v1.2_aml-assignment1_gpt-5.4` |
-| Iteration version dirs | `v<N>` | `iterations/v1/` |
+| Iteration dirs | `current/` while active, `v<N>/` after transition | `iterations/current/`, `iterations/v1.5/` |
 | Self-reflection files | `<test-name>_self_reflection.md` | `cv2-homework3_self_reflection.md` |
 | Plan files | `<test-name>_plan.md` | `cv2-homework3_plan.md` |
 
@@ -71,12 +82,11 @@ general-coding-agent/
 ```
 Task: <one-sentence description>
 Input: general-coding-agent/tests/<test-name>/<file>, ...
-Output: general-coding-agent/results/<version>/<test-name>/ (file1, file2, ...)
+Output: general-coding-agent/results/current/<test-name>/ (file1, file2, ...)
 ```
 
 - All paths include `general-coding-agent/` prefix so outputs stay inside the project.
-- Output: single directory path; list specific files in parentheses.
-- Version in Output is provided at test time.
+- Output always uses `results/current/`. On version transition, `current/` is renamed to `<version>/`.
 
 ---
 
@@ -86,11 +96,16 @@ Output: general-coding-agent/results/<version>/<test-name>/ (file1, file2, ...)
 |------|-----------|------|
 | `core/agent.md` | `~/.cursor/commands/agent.md` | Orchestrator: plans, delegates, manages quality, maintains workspace, selects models. |
 | `core/subagents/executor.md` | `~/.cursor/agents/executor.md` | General-purpose implementation. |
-| `core/subagents/designer.md` | `~/.cursor/agents/designer.md` | Visual deliverables (PDF, web, slides). |
+| `core/subagents/report-writer.md` | `~/.cursor/agents/report-writer.md` | Report deliverables: writes content + formats directly (PDF, web, slides). |
 | `core/subagents/debugger.md` | `~/.cursor/agents/debugger.md` | Targeted fixes within scoped file list. |
-| `core/subagents/qa-specialist.md` | `~/.cursor/agents/qa-specialist.md` | Read-only output quality inspection. |
-| `core/subagents/verifier.md` | `~/.cursor/agents/verifier.md` | Per-item PASS/FAIL checks. |
-| `core/subagents/file-explorer.md` | `~/.cursor/agents/file-explorer.md` | Document extraction and organization. |
+| `core/subagents/qa-specialist.md` | `~/.cursor/agents/qa-specialist.md` | End-to-end output inspector (black-box, never reads code). |
+| `core/subagents/verifier.md` | `~/.cursor/agents/verifier.md` | Comprehensive code reviewer; fixes minor issues, reports major ones. |
+| `core/subagents/file-extractor.md` | `~/.cursor/agents/file-extractor.md` | Document & web page content extraction. |
+| `skills/file-content-extraction/` | `~/.cursor/skills/file-content-extraction/` | PDF/DOCX/PPTX extraction instructions for file-extractor. |
+| `skills/webpage-content-extraction/` | `~/.cursor/skills/webpage-content-extraction/` | Web page extraction instructions for file-extractor. |
+| `skills/report-builder/` | `~/.cursor/skills/report-builder/` | Build scripts, LaTeX templates, HTML styles for report-writer. |
+| `skills/pptx/` | `~/.cursor/skills/pptx/` | Slide creation/editing skill for report-writer. |
+| `skills/file-content-extraction/extract_doc.py` | `~/.cursor/skills/file-content-extraction/extract_doc.py` | Document content + figure extraction script. |
 
 ---
 
@@ -180,13 +195,20 @@ Run the cross-file consistency check (see Agent Design Principles):
 ./scripts/deploy.sh --archive
 ```
 
-This deploys `core/` to Cursor AND archives `core/` to `current/files/core/` (snapshot of this version's agent definitions). Verify deployed files match source with diff.
+This deploys `core/`, `skills/`, and `scripts/` to Cursor AND archives `core/` to `current/files/core/` (snapshot of this version's agent definitions). Verify deployed files match source with diff.
 
 ### Phase 4: Version transition
 
+The user provides the version number (e.g., v2). Both `iterations/current` and `results/current` are renamed to the user-specified version. A new empty `iterations/current` is created for the next development cycle.
+
 ```bash
-mkdir -p iterations/<new-version>/requirements iterations/<new-version>/files
-rm current && ln -s iterations/<new-version> current
+# Archive current iteration and results under the user-specified version
+mv iterations/current iterations/<version>
+mv results/current results/<version>
+
+# Set up next iteration (stays as "current" — no version number assigned yet)
+mkdir -p iterations/current/requirements iterations/current/files
+# Symlink unchanged: current -> iterations/current
 ```
 
 Append a version entry to `history.md` (never modify past entries). Include: what changed, why, which files were modified, which test cases validated it.

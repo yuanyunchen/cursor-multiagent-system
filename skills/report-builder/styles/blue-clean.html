@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 2.5cm 2cm;
+      @bottom-center {
+        content: counter(page);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 9pt;
+        color: #64748B;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.65;
+      color: #334155;
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 0;
+      background: #FFFFFF;
+    }
+
+    h1 {
+      font-size: 26pt;
+      font-weight: 700;
+      color: #1B2A4A;
+      border-bottom: 3px solid #3D6B99;
+      padding-bottom: 12px;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 17pt;
+      font-weight: 600;
+      color: #1B2A4A;
+      margin-top: 36px;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid #E2E8F0;
+      page-break-before: always;
+    }
+
+    h2:first-of-type {
+      page-break-before: avoid;
+    }
+
+    h3 {
+      font-size: 13pt;
+      font-weight: 600;
+      color: #3D6B99;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    h4 {
+      font-size: 11pt;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin: 10px 0;
+      text-align: justify;
+    }
+
+    strong { color: #1B2A4A; }
+
+    a {
+      color: #3D6B99;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+
+    thead th {
+      background-color: #F0F4F8;
+      color: #1B2A4A;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 14px;
+      border-top: 2px solid #1B2A4A;
+      border-bottom: 2px solid #1B2A4A;
+    }
+
+    tbody td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #E2E8F0;
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+
+    /* Images / Figures */
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 24px auto 8px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
+    }
+
+    figure {
+      margin: 24px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    figcaption, .caption {
+      text-align: center;
+      font-size: 9.5pt;
+      font-style: italic;
+      color: #64748B;
+      margin-top: 6px;
+      margin-bottom: 16px;
+    }
+
+    /* Code */
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 9pt;
+      background-color: #F1F5F9;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #1B2A4A;
+    }
+
+    pre {
+      background-color: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      border-radius: 4px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      font-size: 9pt;
+      line-height: 1.5;
+      margin: 16px 0;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin: 10px 0;
+      padding-left: 1.8em;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* Blockquote */
+    blockquote {
+      border-left: 4px solid #3D6B99;
+      margin: 16px 0;
+      padding: 10px 16px;
+      background-color: #F0F4F8;
+      color: #475569;
+      font-style: italic;
+    }
+
+    /* Horizontal rule */
+    hr {
+      border: none;
+      border-top: 1px solid #E2E8F0;
+      margin: 28px 0;
+    }
+
+    /* Print overrides */
+    @media print {
+      body { max-width: none; }
+      h2 { page-break-before: always; }
+      h2:first-of-type { page-break-before: avoid; }
+      table, figure, pre { page-break-inside: avoid; }
+      img { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+{{ content }}
+</body>
+</html>

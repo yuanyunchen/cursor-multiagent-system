@@ -1,21 +1,24 @@
 #!/bin/bash
 ################################################################################
-# Deploy core agent files to Cursor IDE configuration directories.
+# Deploy agent definitions and skills to Cursor IDE directories.
 #
-# Source:  general-coding-agent/core/
-# Target:  ~/.cursor/commands/agent.md    (orchestrator)
-#          ~/.cursor/agents/*.md          (subagents)
+# Source -> Target mapping:
+#   core/agent.md            -> ~/.cursor/commands/agent.md
+#   core/subagents/*.md      -> ~/.cursor/agents/*.md
+#   skills/*                 -> ~/.cursor/skills/*
 #
-# Usage:   ./scripts/deploy.sh
+# Usage:   ./scripts/deploy.sh [--archive]
+#   --archive: also snapshot core/ into iterations/current/files/core/
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 CORE_DIR="$PROJECT_ROOT/core"
+SKILLS_DIR="$PROJECT_ROOT/skills"
 
 CURSOR_COMMANDS="$HOME/.cursor/commands"
 CURSOR_AGENTS="$HOME/.cursor/agents"
-
+CURSOR_SKILLS="$HOME/.cursor/skills"
 if [ ! -d "$CORE_DIR" ]; then
     echo "ERROR: core/ directory not found at $CORE_DIR"
     exit 1
@@ -23,10 +26,11 @@ fi
 
 mkdir -p "$CURSOR_COMMANDS" "$CURSOR_AGENTS"
 
-echo "Deploying agent files to Cursor..."
+echo "Deploying agent system to Cursor..."
 echo ""
 
-# Deploy orchestrator
+# --- Core: orchestrator + subagents ---
+echo "[core]"
 if [ -f "$CORE_DIR/agent.md" ]; then
     cp "$CORE_DIR/agent.md" "$CURSOR_COMMANDS/agent.md"
     echo "  agent.md -> $CURSOR_COMMANDS/agent.md"
@@ -34,15 +38,38 @@ else
     echo "  SKIP: agent.md not found in core/"
 fi
 
-# Deploy subagents
-COUNT=0
+AGENT_COUNT=0
 for f in "$CORE_DIR/subagents/"*.md; do
     [ -f "$f" ] || continue
     NAME=$(basename "$f")
     cp "$f" "$CURSOR_AGENTS/$NAME"
     echo "  subagents/$NAME -> $CURSOR_AGENTS/$NAME"
-    COUNT=$((COUNT + 1))
+    AGENT_COUNT=$((AGENT_COUNT + 1))
 done
 
+# --- Skills ---
+SKILL_COUNT=0
+if [ -d "$SKILLS_DIR" ]; then
+    echo ""
+    echo "[skills]"
+    for skill_dir in "$SKILLS_DIR"/*/; do
+        [ -d "$skill_dir" ] || continue
+        SKILL_NAME=$(basename "$skill_dir")
+        mkdir -p "$CURSOR_SKILLS/$SKILL_NAME"
+        rsync -a --delete "$skill_dir" "$CURSOR_SKILLS/$SKILL_NAME/"
+        echo "  skills/$SKILL_NAME/ -> $CURSOR_SKILLS/$SKILL_NAME/"
+        SKILL_COUNT=$((SKILL_COUNT + 1))
+    done
+fi
+
+# --- Archive (optional) ---
+if [ "$1" = "--archive" ]; then
+    ARCHIVE_DIR="$PROJECT_ROOT/iterations/current/files/core"
+    mkdir -p "$ARCHIVE_DIR"
+    rsync -a --delete "$CORE_DIR/" "$ARCHIVE_DIR/"
+    echo ""
+    echo "[archive] core/ -> iterations/current/files/core/"
+fi
+
 echo ""
-echo "Done. Deployed 1 command + $COUNT subagents."
+echo "Done. Deployed 1 command + $AGENT_COUNT subagents + $SKILL_COUNT skills."

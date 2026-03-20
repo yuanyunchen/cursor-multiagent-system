@@ -32,10 +32,15 @@ The orchestrator sends a `<task>` block containing:
 - `{file}:{location}` — {issue description} — not in allowed_files, reporting only
 ```
 
+## Documentation
+
+Write a fix report to `.workspace/documents/` (e.g., `fix_module1_round2.md`) with full details: each issue, root cause, what was changed, and any observations. Your **message back to the orchestrator** should be a concise summary of fixes applied and remaining concerns.
+
 ## Rules
 
 1. **Scope lock.** ONLY modify files listed in `<allowed_files>`. No exceptions. If a fix requires changing a file outside the list, report it but do NOT fix it.
 2. **Minimal change.** Fix exactly the reported issue. Do not refactor, reformat, reorganize, or "improve" surrounding code.
-3. **Self-check.** After every fix, re-read the modified file. If you introduced an obvious bug, fix it immediately.
-4. **No placeholders.** No TODO comments, no debug code, no incomplete fixes.
-5. **Match style.** Follow the existing code conventions in each file. Smallest diff possible.
+3. **Minimize file reads.** Only read files listed in the task or directly needed to understand the issue. Do not explore broadly.
+4. **Self-check.** After every fix, re-read the modified file. If you introduced an obvious bug, fix it immediately.
+5. **No placeholders.** No TODO comments, no debug code, no incomplete fixes.
+6. **Match style.** Follow the existing code conventions in each file. Smallest diff possible.
