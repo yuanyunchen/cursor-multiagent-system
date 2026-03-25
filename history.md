@@ -134,3 +134,53 @@ Self-contained repository: all skills, scripts, and templates internalized. Extr
 
 - CV2 Homework 4 v2 (results/v2/cv2-homework4-kimi, cv2-homework4-kimi-v2)
 - AML Lecture 2 PDF extraction (file-explorer/results/v1.5_aml_lecture2)
+
+## v2.1 (2026-03-14)
+
+Workflow simplification: tiered quality pipeline and model selection removal.
+
+### Changes
+
+- **Tiered module execution.** Replaced the single Execute -> Verify -> QA loop with two distinct paths:
+  - **Routine modules:** executor only, then reflect. No verifier, no QA.
+  - **Core modules:** executor -> verifier -> qa-specialist (Full mode), loop max 3 rounds.
+- **Final review requires both verifier and QA.** Step 4 now mandates verifier on all final code + qa-specialist (Full mode) on all deliverables before delivery. Previously only QA was mandatory.
+- **Model selection removed.** Entire model selection block (parameter docs, fast/inherit guidance, Full mode directive, role defaults table) removed from `agent.md`. All subagents now use system default (inherit). Archived block saved to `history.md`.
+- **Plan example updated.** Now shows both a routine module (executor only) and a core module (full loop) to illustrate the two paths. Model annotations removed from pipeline specs.
+- **QA Specialist description updated.** Removed "Use after Verifier confirms code is clean" — QA is no longer always preceded by verifier.
+
+### Files Modified
+
+- `core/agent.md` — workflow steps 3-4 rewritten, model selection block removed, plan example updated (220 -> 197 lines)
+- `core/subagents/qa-specialist.md` — YAML description updated
+- `history.md` — archived model selection block, v2.1 entry
+
+---
+
+## Archived: Model Selection (removed in v2.1)
+
+Previously in `core/agent.md` `<team>` section. Removed because all subagents now default to inherit (system default). Kept here for reference.
+
+```
+**Model selection:** Every Task dispatch has an optional `model` parameter:
+- **`model: "fast"`** — lighter, faster, significantly cheaper. **Use as default for most tasks.** Sufficient for well-scoped work: commands, single-file edits, checklist verification, targeted fixes, routine implementation.
+- **Omit `model` (inherit)** — stronger reasoning, slower, costlier. Use when: (a) a task failed with fast — retry with inherit, or (b) a core module that directly determines output quality and requires deep reasoning. Break large core modules into smaller pieces first; only use inherit on the parts that truly need it.
+
+**Full mode:** If the user explicitly requests full mode, shift the balance — use inherit for all quality-sensitive work (core implementation, QA, report writing, complex debugging). Still use fast for simple tasks (file reads, config, commands, lightweight verification).
+
+Example — fast: `Task(subagent_type="executor", model="fast", prompt="...")`
+Example — inherit: `Task(subagent_type="executor", prompt="...")`
+
+Role defaults (standard mode):
+
+| Role | Default | Use inherit when |
+|------|---------|-----------------|
+| executor | fast | core module affecting output quality, or failed with fast |
+| report-writer | default | — (always inherit: writes content + formats) |
+| QA Specialist | fast | core module or final review → inherit |
+| Verifier | fast | core module or final review → inherit |
+| Debugger | fast | complex multi-file fix |
+| file-extractor | fast | — |
+| explore (built-in) | fast | — |
+| shell (built-in) | fast | — |
+```
