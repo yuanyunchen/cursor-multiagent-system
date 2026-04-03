@@ -155,9 +155,38 @@ Workflow simplification: tiered quality pipeline and model selection removal.
 - `core/subagents/qa-specialist.md` — YAML description updated
 - `history.md` — archived model selection block, v2.1 entry
 
+## v2.1.1 (2026-03-14)
+
+Add back simplified model selection; enforce deploy-before-commit.
+
+### Changes
+
+- **Model selection restored (simplified).** Two-line version: inherit for quality-critical work (core modules, verifier, QA, report-writer), fast for routine execution (commands, config, file reads).
+- **Deploy-before-commit rule.** Added to `llm.md` Phase 5: always run `deploy.sh` before `git commit`.
+
+### Files Modified
+
+- `core/agent.md` — model selection block added back (simplified)
+- `llm.md` — Phase 5 updated with deploy-before-commit
+
+## v2.1.2 (2026-03-14)
+
+Versioning scheme and commit protocol.
+
+### Changes
+
+- **Versioning scheme defined.** `major.minor.patch` — major for architecture, minor for features (user-assigned), patch auto-increments per commit.
+- **Commit protocol formalized.** Every commit: deploy -> append `history.md` entry -> commit -> report (old version -> new version + changes).
+- **Retroactive patch version.** Added v2.1.1 entry for the previous unversioned commit.
+
+### Files Modified
+
+- `llm.md` — new "Versioning" section with scheme + commit protocol
+- `history.md` — v2.1.1 and v2.1.2 entries added
+
 ---
 
-## Archived: Model Selection (removed in v2.1)
+## Archived: Model Selection (removed in v2.1, restored simplified in v2.1.1)
 
 Previously in `core/agent.md` `<team>` section. Removed because all subagents now default to inherit (system default). Kept here for reference.
 

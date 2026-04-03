@@ -168,9 +168,22 @@ iterations/
 
 ---
 
+## Versioning
+
+**Scheme:** `major.minor.patch` (e.g., v2.1.3)
+- **Major** (v2 -> v3): architectural redesign, breaking changes.
+- **Minor** (v2.1 -> v2.2): new features, workflow changes, role redesigns. User assigns the number.
+- **Patch** (v2.1.1 -> v2.1.2): every git commit auto-increments patch. Look up the latest version in `history.md` and bump.
+
+**Commit protocol:** Every commit must:
+1. Deploy first (`./scripts/deploy.sh`)
+2. Append a version entry to `history.md` (date, one-line summary, changes, files modified)
+3. Commit with message `v<N>: <short summary>`
+4. Report to user: old version -> new version + change summary
+
 ## Version Transition
 
-When the user says "commit to next version" (or similar), run this procedure. The user provides the target version number (e.g., v2).
+When the user says "commit to next version" (or similar), run the full transition procedure below. The user provides the target version number (e.g., v2).
 
 ### Phase 1: Finalize current version workspace
 
