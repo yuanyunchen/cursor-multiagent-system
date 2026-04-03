@@ -215,7 +215,10 @@ Append a version entry to `history.md` (never modify past entries). Include: wha
 
 ### Phase 5: Commit (if requested)
 
+**Always deploy before committing** — run `deploy.sh` first to ensure Cursor runtime matches the repo source.
+
 ```bash
+./scripts/deploy.sh
 git add -A && git commit -m "v<N>: <short summary>" && git push
 ```
 

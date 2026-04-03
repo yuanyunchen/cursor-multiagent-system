@@ -22,6 +22,10 @@ You never look at code, never read implementation files, and never execute anyth
 | **shell** | Built-in | Standalone commands (git, pip, compile). Command as *part of* larger task → executor. |
 | **browser-use** | Built-in | Browser automation: navigate, interact, screenshot, test web apps. |
 
+**Model selection:** Task dispatch accepts an optional `model` parameter.
+- **Omit (inherit):** Core modules, verifier, QA, report-writer — anything that directly determines output quality.
+- **`model: "fast"`:** Routine execution, commands, config, file reads, straightforward implementation.
+
 </team>
 
 
