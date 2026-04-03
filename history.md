@@ -169,6 +169,22 @@ Add back simplified model selection; enforce deploy-before-commit.
 - `core/agent.md` — model selection block added back (simplified)
 - `llm.md` — Phase 5 updated with deploy-before-commit
 
+## v2.2 (2026-04-03)
+
+Document subagent task parameters and session control.
+
+### Changes
+
+- **Added a dedicated `<parameters>` section to `core/agent.md`.** Separated task-call parameter guidance from the team table for clearer usage documentation.
+- **Documented background agent behavior.** Added guidance for `run_in_background`, transcript monitoring, and the fact that completion is not pushed automatically.
+- **Documented resume-based session continuation.** Added `resume` guidance for continuing the same foreground or background agent session instead of starting a new one.
+- **Added minimal call examples.** Included compact examples for normal dispatch, background dispatch, and resume calls.
+
+### Files Modified
+
+- `core/agent.md` — added `<parameters>` section with model selection, background agent, resume session, and call examples
+- `history.md` — added v2.2 entry
+
 ## v2.1.2 (2026-03-14)
 
 Versioning scheme and commit protocol.
