@@ -119,6 +119,34 @@ Self-contained repository: all skills, scripts, and templates internalized. Extr
 - **File-extractor workflow updated.** Step 3 renamed from "Organize" to "Fix & Organize" with two explicit categories: format fixes (merged words, broken lines, artifacts, page headers) and structural organization (headings, figure placement). Rule 1 rewritten from "Preserve ALL original content" to "Fix format, preserve content."
 - **`llm.md` updated.** Workspace structure includes `skills/` tree. Tracked files table includes `skills/`. Core File Roles table expanded with skill and script entries.
 
+## v2.3.1 (2026-04-10)
+
+Prompt contract cleanup, consistency alignment, and orchestrator attention tuning.
+
+### Changes
+
+- **Unified dispatch contract clarified.** `core/agent.md` now uses a structured `<output>` schema (`report`, `standards`, `deliverable`, `output_dir`) and all subagent prompts were updated to consume the same fields.
+- **Cross-file consistency tightened.** Synced built-in names, report-writer capabilities, README workflow wording, and `llm.md` consistency checks so public docs and runtime prompts describe the same behavior.
+- **Workspace upload flow formalized.** Added explicit `.workspace/uploads/` behavior for blocker-driven user file uploads, with creation only when missing user-provided materials block execution.
+- **Prompt quality improved without changing behavior.** Simplified orchestrator wording, replaced the domain-biased planning example with a more general one, and front-loaded operational priorities plus blocker handling.
+
+### Files Modified
+
+- `core/agent.md`
+- `core/subagents/executor.md`
+- `core/subagents/verifier.md`
+- `core/subagents/debugger.md`
+- `core/subagents/qa-specialist.md`
+- `core/subagents/file-extractor.md`
+- `core/subagents/report-writer.md`
+- `llm.md`
+- `README.md`
+
+### Tested On
+
+- Manual consistency review across `agent.md`, subagent prompts, `llm.md`, and `README.md`
+- IDE lint check on modified markdown files (no linter errors)
+
 ### Files Modified
 
 - `skills/` — new directory: `file-content-extraction/`, `webpage-content-extraction/`, `report-builder/`, `pptx/`

@@ -120,8 +120,12 @@ Follow these when modifying any file in `core/`.
    - `<role>` aligns with `<workflow>` (the workflow must not require actions the role forbids).
    - `<team>` table descriptions match each subagent's YAML `description` field.
    - `<team>` only lists built-ins / tools / subagent types that actually exist in the runtime.
+   - `<team>` I/O expectations match how each subagent actually reads `<task>` fields.
+   - `README.md` matches `agent.md` on public-facing workflow, built-in names, and workspace behavior.
+   - `uploads/` behavior is described consistently wherever `.workspace` is documented.
    - Rules don't contradict each other (e.g., delegation rules vs. direct execution rules).
    - `<workflow>` references valid rule numbers and section names.
+   - `<task_format>` is the single dispatch contract; subagent docs must not invent incompatible input formats.
    After editing subagent files, verify their YAML description matches `agent.md`'s `<team>` table.
    **Report issues immediately** -- do not defer consistency checks to later.
 
@@ -129,7 +133,11 @@ Follow these when modifying any file in `core/`.
 
 4. **Compatibility check.** Before adding new features, check how they interact with existing features. New mechanisms must not break or contradict existing ones. Read the full `<rules>` and `<workflow>` sections before making changes.
 
-5. **Requirements-first.** Before implementing changes to `core/`, ensure requirements are captured in `current/requirements/<feature>.md`. If requirements evolve during implementation, update the requirements file to match the final agreed design.
+5. **Single task protocol.** `agent.md`'s `<task_format>` is the only task dispatch contract. If a subagent needs special control fields, add them as optional fields to `<task_format>` and document how that subagent uses them. Do not create parallel ad hoc formats in subagent files. Keep `<output>` semantically structured: use named child fields rather than one overloaded free-form blob.
+
+6. **Public docs stay aligned.** When a change affects capabilities, workflow, built-in names, or workspace conventions, update `README.md` in the same edit set unless it is intentionally internal-only.
+
+7. **Requirements-first.** Before implementing changes to `core/`, ensure requirements are captured in `current/requirements/<feature>.md`. If requirements evolve during implementation, update the requirements file to match the final agreed design.
 
 ---
 
@@ -201,8 +209,12 @@ Run the cross-file consistency check (see Agent Design Principles):
 - [ ] `<role>` aligns with `<workflow>`.
 - [ ] `<team>` table descriptions match each subagent's YAML `description` field.
 - [ ] `<team>` only references built-ins / tools / subagent types that actually exist in the runtime.
+- [ ] `<team>` I/O expectations match how each subagent actually reads `<task>` fields.
+- [ ] `README.md` matches `agent.md` on workflow, built-in names, and workspace behavior.
+- [ ] `uploads/` behavior is described consistently wherever `.workspace` is documented.
 - [ ] Rules don't contradict each other.
 - [ ] `<workflow>` references valid rule numbers and section names.
+- [ ] `<task_format>` remains the single dispatch contract across `agent.md` and all subagent docs.
 - [ ] Never rename XML tags in `agent.md` (`<role>`, `<team>`, `<workspace>`, `<rules>`, `<workflow>`) without checking all references.
 - Report any issues before proceeding.
 

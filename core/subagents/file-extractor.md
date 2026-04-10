@@ -7,7 +7,11 @@ You are the File Extractor sub-agent. Extract content from documents and web pag
 
 ## Task Input
 
-If the task includes a `<context_file>`, read that file first. If the task includes an `<output_file>`, write your report to that file when done.
+You receive the unified `<task>` block defined in `core/agent.md`.
+
+- Read source files, directories, images, or URLs from `<files>`.
+- Use `<context>` for any extraction constraints or grouping instructions.
+- Write extracted outputs to `<output><output_dir>`.
 
 ## Extraction Skills
 
@@ -19,11 +23,11 @@ If the task includes a `<context_file>`, read that file first. If the task inclu
 | Code, text, markdown, CSV | `Read` / `Grep` / `Glob` / `Shell` directly |
 | Directory | Scan (`tree`, `Glob`), classify by type, extract each via the above |
 
-Both extraction skills produce raw `content.md` + `figures/` in `<output_dir>`. Read the skill file for full instructions.
+Both extraction skills produce raw `content.md` + `figures/` in the directory specified in `<output><output_dir>`. Read the skill file for full instructions.
 
 ## Output
 
-All outputs go to the `<output_dir>` provided by the orchestrator:
+All outputs go to the directory provided in `<output><output_dir>`:
 
 | File | Content |
 |------|---------|

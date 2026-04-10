@@ -13,14 +13,14 @@ Orchestrator (agent.md)
 ├── debugger        — Targeted fixes from issue lists (scoped to allowed files)
 ├── file-extractor  — Document & web page extraction (PDF, DOCX, PPTX, URLs)
 ├── explore         — (built-in) Codebase navigation and keyword search
-├── shell           — (built-in) Standalone command execution
-└── browser-use     — (built-in) Browser automation and web app testing
+├── bash            — (built-in) Standalone command execution
+└── browser         — (built-in) Browser automation and web app testing
 ```
 
 ## Workflow
 
 ```
-1. Initialize    — Extract documents, explore codebase, set up workspace
+1. Initialize    — Set up workspace, extract documents when needed, explore codebase when needed, create `uploads/` only for missing user files
 2. Plan          — Decompose into modules, define pipelines
 3. Execute       — Per-module execution with tiered quality control
 4. Final Review  — Verifier + QA on all deliverables (mandatory gate)
@@ -34,8 +34,8 @@ Modules are classified as **routine** or **core** at planning time:
 
 | Module Type | Pipeline | When to Use |
 |-------------|----------|-------------|
-| **Routine** | executor only | Config, setup, data loading, straightforward implementation |
-| **Core**    | executor -> verifier -> qa-specialist (Full) | Modules that directly determine output quality |
+| **Routine** | executor -> orchestrator check | Straightforward implementation that is quick to validate directly |
+| **Core**    | executor -> orchestrator check (+ verifier / qa-specialist as needed) | Modules that directly determine output quality or need deeper review |
 
 Final review (verifier + QA) is mandatory before every delivery.
 
@@ -81,5 +81,7 @@ This syncs:
 ## Usage
 
 In Cursor, invoke the orchestrator with `/agent` followed by your task. Provide input files and specify the output directory.
+
+If the orchestrator reports that a required file is missing, it will create `.workspace/uploads/` for that task and ask you to place the missing files there.
 
 For development and iteration workflows, see `llm.md`.
