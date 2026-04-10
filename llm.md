@@ -117,7 +117,9 @@ Follow these when modifying any file in `core/`.
 
 2. **Cross-file consistency.** After any edit to `agent.md`, verify:
    - `<role>` aligns with `<rules>` (no contradictions).
+   - `<role>` aligns with `<workflow>` (the workflow must not require actions the role forbids).
    - `<team>` table descriptions match each subagent's YAML `description` field.
+   - `<team>` only lists built-ins / tools / subagent types that actually exist in the runtime.
    - Rules don't contradict each other (e.g., delegation rules vs. direct execution rules).
    - `<workflow>` references valid rule numbers and section names.
    After editing subagent files, verify their YAML description matches `agent.md`'s `<team>` table.
@@ -172,7 +174,7 @@ iterations/
 
 **Scheme:** `major.minor.patch` (e.g., v2.1.3)
 - **Major** (v2 -> v3): architectural redesign, breaking changes.
-- **Minor** (v2.1 -> v2.2): new features, workflow changes, role redesigns. User assigns the number.
+- **Minor** (v2.1 -> v2.2): new features, workflow changes, role redesigns. If the user specifies the version number, use it. Otherwise, infer the appropriate next version from the scope of changes.
 - **Patch** (v2.1.1 -> v2.1.2): every git commit auto-increments patch. Look up the latest version in `history.md` and bump.
 
 **Commit protocol:** Every commit must:
@@ -183,7 +185,7 @@ iterations/
 
 ## Version Transition
 
-When the user says "commit to next version" (or similar), run the full transition procedure below. The user provides the target version number (e.g., v2).
+When the user says "commit to next version" (or similar), always run the full transition procedure below. Use the user-provided target version number when given; otherwise, infer the appropriate next version from the versioning scheme above.
 
 ### Phase 1: Finalize current version workspace
 
@@ -196,7 +198,9 @@ When the user says "commit to next version" (or similar), run the full transitio
 
 Run the cross-file consistency check (see Agent Design Principles):
 - [ ] `<role>` aligns with `<rules>`.
+- [ ] `<role>` aligns with `<workflow>`.
 - [ ] `<team>` table descriptions match each subagent's YAML `description` field.
+- [ ] `<team>` only references built-ins / tools / subagent types that actually exist in the runtime.
 - [ ] Rules don't contradict each other.
 - [ ] `<workflow>` references valid rule numbers and section names.
 - [ ] Never rename XML tags in `agent.md` (`<role>`, `<team>`, `<workspace>`, `<rules>`, `<workflow>`) without checking all references.
@@ -212,10 +216,10 @@ This deploys `core/`, `skills/`, and `scripts/` to Cursor AND archives `core/` t
 
 ### Phase 4: Version transition
 
-The user provides the version number (e.g., v2). Both `iterations/current` and `results/current` are renamed to the user-specified version. A new empty `iterations/current` is created for the next development cycle.
+Choose the version number from the user instruction when available; otherwise infer it from the scope of changes. Then rename both `iterations/current` and `results/current` to that version. A new empty `iterations/current` is created for the next development cycle.
 
 ```bash
-# Archive current iteration and results under the user-specified version
+# Archive current iteration and results under the chosen version
 mv iterations/current iterations/<version>
 mv results/current results/<version>
 

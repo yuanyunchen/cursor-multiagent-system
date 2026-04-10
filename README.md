@@ -1,92 +1,85 @@
 # General Coding Agent
 
-A multi-agent orchestration system for Cursor IDE. The **Orchestrator** (tech lead) plans, delegates, and manages quality — while specialized **subagents** handle all hands-on work.
+A multi-agent orchestration system for [Cursor IDE](https://cursor.com/). The **Orchestrator** (tech lead) plans, decomposes tasks into modules, delegates to specialized **subagents**, and drives quality through a structured review pipeline.
 
 ## Architecture
 
 ```
 Orchestrator (agent.md)
 ├── executor        — General-purpose implementation: code, commands, tests, setup
-├── designer        — Visual deliverables: PDF (LaTeX/HTML), web pages, slides
-├── debugger        — Targeted fixes from QA issue lists (scoped to allowed files)
-├── qa-specialist   — Read-only output quality inspection (Full / Lightweight modes)
-├── verifier        — Fast per-item PASS/FAIL checks against explicit criteria
-├── file-extractor  — Document & web page content extraction (PDF, DOCX, PPTX, URLs)
+├── report-writer   — Report writing and formatting: PDF, HTML, slides
+├── verifier        — Comprehensive code reviewer (fixes minor, reports major)
+├── qa-specialist   — Black-box output inspector (Full / Lightweight modes)
+├── debugger        — Targeted fixes from issue lists (scoped to allowed files)
+├── file-extractor  — Document & web page extraction (PDF, DOCX, PPTX, URLs)
 ├── explore         — (built-in) Codebase navigation and keyword search
 ├── shell           — (built-in) Standalone command execution
 └── browser-use     — (built-in) Browser automation and web app testing
 ```
 
-## Quality Control Loop
-
-The system enforces a closed-loop QC process:
-
-```
-QA Specialist (find issues) → Debugger (fix) → Verifier (confirm) → re-QA
-                                     ↑                                  |
-                                     └──────── max 3 rounds ───────────┘
-```
-
-- **QA Specialist** inspects deliverables (never source code) and classifies findings as blockers vs. suggestions
-- **Debugger** applies minimal, scoped fixes only to explicitly allowed files
-- **Verifier** confirms fixes are correct and in-scope
-- Nothing ships without a passed full-mode QA round
-
 ## Workflow
 
-| Task Size | Flow |
-|-----------|------|
-| **S** (single file, <10 lines) | Dispatch one task, scan result, reply |
-| **M** (clear scope, few files) | Plan → Execute → Validate → Iterate → Deliver |
-| **L** (multi-file, architecture) | Understand → Architect → Execute in rounds (with checkpoints) → Final Validate → Iterate → Deliver |
+```
+1. Initialize    — Extract documents, explore codebase, set up workspace
+2. Plan          — Decompose into modules, define pipelines
+3. Execute       — Per-module execution with tiered quality control
+4. Final Review  — Verifier + QA on all deliverables (mandatory gate)
+5. Report        — Report-writer produces final documents (if needed)
+6. Deliver       — Summary to user
+```
 
-Key principles:
-- **Delegate everything.** The orchestrator never writes code or runs commands directly.
-- **Maximize parallelism.** Independent tasks always run concurrently.
-- **Full context per dispatch.** Each subagent receives a self-contained task with all necessary information.
-- **Iterate until professional quality.** Hard cap of 5 iteration rounds.
+### Tiered Quality Control
 
-## File Structure
+Modules are classified as **routine** or **core** at planning time:
+
+| Module Type | Pipeline | When to Use |
+|-------------|----------|-------------|
+| **Routine** | executor only | Config, setup, data loading, straightforward implementation |
+| **Core**    | executor -> verifier -> qa-specialist (Full) | Modules that directly determine output quality |
+
+Final review (verifier + QA) is mandatory before every delivery.
+
+## Model Selection
+
+| Mode | Behavior |
+|------|----------|
+| **Default** | inherit for quality-critical work (core modules, verifier, QA, report-writer); fast for routine tasks |
+| **Full mode** | inherit for all subagents |
+
+## Repository Structure
 
 ```
-.
-├── core/
-│   ├── agent.md              # Orchestrator definition (Cursor command)
-│   └── subagents/
-│       ├── debugger.md       # Targeted fixer
-│       ├── designer.md       # Visual deliverable creator
-│       ├── executor.md       # General-purpose implementer
-│       ├── file-extractor.md # Document & web page content extraction
-│       ├── qa-specialist.md  # Output quality inspector
-│       └── verifier.md       # Per-item checker
+general-coding-agent/
+├── core/                          # Agent definitions (source of truth)
+│   ├── agent.md                   #   Orchestrator (-> ~/.cursor/commands/)
+│   └── subagents/                 #   Subagent definitions (-> ~/.cursor/agents/)
+├── skills/                        # Skills referenced by subagents (-> ~/.cursor/skills/)
+│   ├── file-content-extraction/   #   PDF/DOCX/PPTX extraction
+│   ├── webpage-content-extraction/#   Web page extraction
+│   ├── report-builder/            #   Build scripts, LaTeX templates, HTML styles
+│   └── pptx/                      #   Slide creation/editing
 ├── scripts/
-│   └── deploy.sh             # Deploy core files to Cursor config
-├── history.md                # Version history
-├── llm.md                    # Workspace guide for agent development iterations
+│   └── deploy.sh                  #   Deploy core/ and skills/ to Cursor
+├── history.md                     # Version history (append-only)
+├── llm.md                         # Workspace guide for development iterations
 └── README.md
 ```
 
 ## Setup
 
-Deploy the agent definitions to [Cursor IDE](https://cursor.com/):
+Deploy agent definitions and skills to Cursor IDE:
 
 ```bash
 ./scripts/deploy.sh
 ```
 
-This copies:
-- `core/agent.md` → `~/.cursor/commands/agent.md`
-- `core/subagents/*.md` → `~/.cursor/agents/`
+This syncs:
+- `core/agent.md` -> `~/.cursor/commands/agent.md`
+- `core/subagents/*.md` -> `~/.cursor/agents/`
+- `skills/*/` -> `~/.cursor/skills/`
 
-## Model Selection
+## Usage
 
-Each subagent dispatch supports a `model` parameter:
+In Cursor, invoke the orchestrator with `/agent` followed by your task. Provide input files and specify the output directory.
 
-| Role | Default Model | Upgrade When |
-|------|--------------|--------------|
-| executor | fast | Complex or core tasks affecting product quality |
-| designer | fast | Complex multi-step design |
-| QA Specialist | default (full) | Use fast for lightweight/intermediate checks |
-| verifier | fast | — |
-| debugger | fast | Complex multi-file fixes |
-| file-extractor | fast | — |
+For development and iteration workflows, see `llm.md`.

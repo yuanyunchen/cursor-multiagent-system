@@ -32,3 +32,4 @@ Your **message back to the orchestrator** should be a concise summary (key outco
 6. **Self-check.** After changes, re-read each modified file. Fix obvious bugs you introduced. Report unclear problems without fixing them.
 7. **No placeholders.** No TODO comments, no leftover debug code, no incomplete implementations.
 8. **Flag ambiguity.** If the task is unclear on an architectural choice, flag it — do not guess.
+9. **Flag blockers.** If files, datasets, dependencies, or resources referenced in the task do not exist or cannot be accessed, **stop and report** — do not guess content, generate synthetic substitutes, or silently skip the requirement. Likewise, if a requirement is unrealistic given the available inputs, report it rather than implementing a workaround that deviates from what was asked.

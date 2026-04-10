@@ -200,6 +200,27 @@ Versioning scheme and commit protocol.
 - `llm.md` — new "Versioning" section with scheme + commit protocol
 - `history.md` — v2.1.1 and v2.1.2 entries added
 
+## v2.3 (2026-04-10)
+
+Input validation, escalation protocol, and quality control overhaul.
+
+### Changes
+
+- **Initialize step expanded (4 phases).** Added Validate Inputs (check all referenced files exist and extracted successfully), Clarify Requirements (identify blockers, ambiguities, technical choices), and User Confirmation Gate (structured summary with blockers/questions, must resolve before planning). Previously Initialize only had workspace setup and requirement aggregation.
+- **Escalation protocol (Rule 7).** New rule: stop and ask the user when encountering blockers (missing files, conflicting requirements, extraction failures, infeasible constraints). Overrides bias toward producing output — delivering nothing beats silently deviating from requirements.
+- **Unified module execution loop.** Replaced separate routine/core module flows with a single Execute → Check → Fix → Reflect loop. Check intensity based on result complexity (simple: self-review, complex: qa-specialist), not module type.
+- **Module Check criteria in plans.** Each module now defines a **Check** field specifying what to verify after execution — key outputs, metrics, what "correct" looks like.
+- **Orchestrator quality ownership.** Role updated: orchestrator is the final owner of output quality, reviews key outputs (data, metrics, intermediate results) at check and reflect gates.
+- **Verifier scoped to core + final review.** Removed verifier from the default module loop. Now dispatched only for core modules with complex logic and Step 4 (Final review).
+- **Executor flag-blockers rule.** New Rule 9: stop and report when referenced files/resources don't exist or requirements are unrealistic — no guessing, no synthetic substitutes, no silent skips.
+
+### Files Modified
+
+- `core/agent.md` — role, workflow (Initialize expanded, module execution unified, plan Check field), rules (Rule 1 quality oversight, Rule 3 intermediate results, Rule 7 escalation), team table (verifier, debugger descriptions)
+- `core/subagents/executor.md` — Rule 9 (flag blockers)
+- `core/subagents/verifier.md` — YAML description updated (core modules and final review only)
+- `history.md` — v2.3 entry
+
 ---
 
 ## Archived: Model Selection (removed in v2.1, restored simplified in v2.1.1)
