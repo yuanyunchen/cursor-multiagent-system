@@ -8,8 +8,8 @@ A multi-agent orchestration system for [Cursor IDE](https://cursor.com/). The **
 Orchestrator (agent.md)
 ├── executor        — General-purpose implementation: code, commands, tests, setup
 ├── report-writer   — Report writing and formatting: PDF, HTML, slides
-├── verifier        — Comprehensive code reviewer (fixes minor, reports major)
-├── qa-specialist   — Black-box output inspector (Full / Lightweight modes)
+├── verifier        — Exhaustive code reviewer at senior-engineer bar (fixes minor, reports major, proposes enhancements)
+├── qa-specialist   — Black-box output inspector (Full / Format / Lightweight modes)
 ├── debugger        — Targeted fixes from issue lists (scoped to allowed files)
 ├── file-extractor  — Document & web page extraction (PDF, DOCX, PPTX, URLs)
 ├── explore         — (built-in) Codebase navigation and keyword search
@@ -20,31 +20,33 @@ Orchestrator (agent.md)
 ## Workflow
 
 ```
-1. Initialize    — Set up workspace, extract documents when needed, explore codebase when needed, create `uploads/` only for missing user files
-2. Plan          — Decompose into modules, define pipelines
-3. Execute       — Per-module execution with tiered quality control
-4. Final Review  — Verifier + QA on all deliverables (mandatory gate)
-5. Report        — Report-writer produces final documents (if needed)
-6. Deliver       — Summary to user
+1. Initialize           — Set up workspace (brief.md + index.md), extract documents / explore codebase when needed, resolve blockers
+2. Plan                 — Decompose into modules with dependency graph, define pipelines
+3. Module execution     — Per-module Execute -> Check -> Fix -> Reflect loop with mandatory qa-specialist for user-facing output
+4. Final content review — Verifier (code) + qa-specialist (Full, content) with enhancement loop (mandatory gate)
+5. Report               — Report-writer produces the final deliverable (if needed)
+6. Format QA            — qa-specialist (Format mode) on the rendered deliverable
+7. Deliver              — Summary to user (open issues, deviations, declined enhancements explicit)
 ```
 
 ### Tiered Quality Control
 
-Modules are classified as **routine** or **core** at planning time:
+Every module runs an Execute -> Check -> Fix -> Reflect loop (max 3 rounds):
 
-| Module Type | Pipeline | When to Use |
-|-------------|----------|-------------|
-| **Routine** | executor -> orchestrator check | Straightforward implementation that is quick to validate directly |
-| **Core**    | executor -> orchestrator check (+ verifier / qa-specialist as needed) | Modules that directly determine output quality or need deeper review |
+| Module type | Mid-module QC | When to use |
+|-------------|---------------|-------------|
+| **Produces user-facing output** (figures, data, text, any deliverable artifact) | `qa-specialist` (Full) at module close — non-negotiable | Anything the user will see or that feeds a later deliverable |
+| **Core code module** (complex logic or architecture) | `verifier` for code review | Modules that directly determine correctness or architecture |
+| **Internal infrastructure only** (setup, scaffolding, pure library) | Orchestrator self-review | Modules with no user-facing output |
 
-Final review (verifier + QA) is mandatory before every delivery.
+Final content review (`verifier` + `qa-specialist` Full) with an **enhancement loop** is mandatory before any formatting work. After `report-writer` produces the deliverable, a dedicated Format QA pass (`qa-specialist` Format mode) checks rendering, typography, and layout.
 
 ## Model Selection
 
 | Mode | Behavior |
 |------|----------|
-| **Default** | inherit for quality-critical work (core modules, verifier, QA, report-writer); fast for routine tasks |
-| **Full mode** | inherit for all subagents |
+| **Default** | `composer-2` for most work (executor implementation, debugger, file-extractor, routine bash / explore); inherit only for quality-critical judgment (final `verifier`, final `qa-specialist`, `report-writer` primary deliverable, core algorithm design) |
+| **Full mode** | inherit for all subagents — no `composer-2` |
 
 ## Repository Structure
 

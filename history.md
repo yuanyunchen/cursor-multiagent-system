@@ -228,6 +228,46 @@ Versioning scheme and commit protocol.
 - `llm.md` — new "Versioning" section with scheme + commit protocol
 - `history.md` — v2.1.1 and v2.1.2 entries added
 
+## v2.4 (2026-04-17)
+
+Dispatch control, workspace contract, and quality-bar overhaul.
+
+### Changes
+
+- **Dispatch mode — foreground-batched default, background for independent long tasks.** Rewrote `<parameters>` to prescribe: group independent subagents into a single foreground parallel batch by default; use `run_in_background` only when (a) the task is noticeably longer than the current bottleneck and (b) the orchestrator has real work to do alongside. `Await` is used once at the bottleneck — continuous polling is prohibited. Same rule applies to long-running shell commands.
+- **Module dependency graph in plans.** Planning now requires an explicit dependency graph after module specs so the orchestrator can schedule parallel branches vs. bottleneck chains.
+- **Model selection rebalanced.** `composer-2` is now the default for most work (executor implementation, debugger, file-extractor, routine explore / bash). Inherit is reserved for quality-critical judgment: final `verifier`, final `qa-specialist`, `report-writer` primary deliverable, and core algorithm design. Plan example updated to match.
+- **Externalized orchestrator memory.** Formalized three canonical workspace files:
+  - `brief.md` — frozen task brief (original task, constraints, deliverable definition, dispatch-norms reminder, task-output layout map). Never edited after initialize.
+  - `index.md` — directory tree, document registry, per-module progress ledger (dispatched → returned → verdict → key paths), open decisions.
+  - `plan.md` — running plan with per-module headings updated at every reflect gate (progress, new thinking, problems, plan adjustments with rationale).
+- **Workspace contract — 5+1 canonical task-output folders.** `inputs/`, `src/`, `data/`, `outputs/`, `deliverables/`, `save/` — created on demand, nothing else allowed at top level. `deliverables/` is the single authoritative endpoint (copy-not-link). Document reports live under `documents/moduleN/` with role-based filenames; superseded reports go to `documents/save/`. Naming conventions made mandatory with deviation requiring a one-line note in `index.md`.
+- **Rule 7 — Orchestrator memory is untrusted.** New rule mandating targeted re-reads at decision points: the current module's section of `plan.md`, the previous module's ledger line, and — when dispatch protocol is uncertain — the specific rule / `<parameters>` / `<task_format>` block in the deployed system prompt, not the whole file. Recovery checkpoint: when orchestrator cannot clearly recall brief / last module / current step, stop and re-read.
+- **Rule 8 — Workspace hygiene.** New rule enforcing agile, non-accumulative workspace: archive superseded artifacts to `documents/save/` or `save/` in the same turn the replacement is committed; delete clearly-trash files outright; no dead code, no duplicates, no drift; single authoritative location per concept; pre-delivery cleanup sweep is a quality gate, not a polish step.
+- **Mid-module QA mandatory for user-facing output.** Module Check step now requires `qa-specialist` (Full) at module close for any module producing user-facing output (figures, data files, text, any deliverable artifact). Final QA cannot exhaustively inspect hundreds of accumulated artifacts, and deferring loses the ability to resume the producing subagent for fixes.
+- **Final review split: content vs. format.** Replaced the single Final Review step with three distinct steps:
+  - Step 4 **Final content review** — `verifier` + `qa-specialist` Full (in parallel), with a pre-review cleanup pass and an **Enhancement loop** (pursue HIGH/MEDIUM suggestions by default; decline only with explicit rationale in `plan.md`).
+  - Step 5 **Report** — `report-writer` runs only after content is locked.
+  - Step 6 **Format QA** — `qa-specialist` Format mode for rendering/layout only; no content re-audit.
+- **QA Specialist — Format mode added, Full mode raised.** Three modes now: Full (content QA), Format (rendering/layout, no content re-audit), Lightweight. Full mode workflow requires exhaustive inspection (every visual artifact via `Read`, every page), senior-engineer bar, and substantive enhancement analysis as a first-class section.
+- **Verifier — senior-engineer bar, exhaustive, enhancement analysis required.** Reviews every file in scope holistically, not just against checklist. Enhancement analysis is a required first-class section ranked by impact (HIGH / MEDIUM / LOW) with domain-specific guidance (ML: hyperparameter search, ablations; systems: failure modes, concurrency; etc.).
+- **Rule 4 — Quality-first mindset.** Passing QA means "no blockers AND no unaddressed reasonable enhancements", not "no blockers". Act on HIGH/MEDIUM suggestions by default; decline only with explicit rationale in `plan.md`.
+- **Rule 2 — Blockers: stop immediately, escalate in the user's language.** Expanded blocker categories to explicitly cover runtime environment gaps (GPU/CUDA, OS-specific tools, missing network), credentials (API keys, HuggingFace / OpenAI tokens), and missing inputs requiring download. The orchestrator halts at discovery and states what is blocked, why, and what the user must provide — no silent fallbacks.
+- **Summary format — explicit transparency.** Reply in the user's prompt language. Replaced vague "Honest assessment" with mandatory bulleted sections: Known open issues (every unresolved issue from verifier / qa-specialist reports with location and reason), Deviations from requirements, Declined enhancements (with rationale from `plan.md`), Suggested next steps. Hiding issues is a delivery-step failure.
+
+### Files Modified
+
+- `core/agent.md` — dispatch `<parameters>`, workflow (re-ground step, mid-module QA, split final review, format QA), rules (Rule 2 blockers, Rule 4 quality-first, Rule 6 directory ownership, Rule 7 untrusted memory, Rule 8 hygiene), `<workspace>` (brief/index/plan roles, 5+1 folder contract, module subfolders, mandatory naming), summary format
+- `core/subagents/qa-specialist.md` — YAML description, added Format mode, Full mode workflow (exhaustive + enhancement analysis), rules (senior-engineer bar, exhaustive not sampled, enhancement analysis required)
+- `core/subagents/verifier.md` — YAML description, workflow (exhaustive review + enhancement analysis), output format (Enhancement Analysis first-class section), rules (senior-engineer bar, exhaustive not sampled, enhancement analysis required)
+- `README.md` — architecture note for verifier/qa-specialist Format mode, workflow (7 steps), tiered QC table (mandatory mid-module QA), model selection (composer-2 default)
+- `history.md` — v2.4 entry
+
+### Tested On
+
+- Manual consistency review across `agent.md`, subagent prompts, `README.md`, and `llm.md` checklist
+- IDE lint check on modified markdown files (no linter errors)
+
 ## v2.3 (2026-04-10)
 
 Input validation, escalation protocol, and quality control overhaul.
