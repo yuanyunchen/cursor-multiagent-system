@@ -1,13 +1,13 @@
 # Agent Development Workspace Guide
 
-Read this document before making any changes to the General Coding Agent system.
+Read this document before making any changes to the Cursor Multiagent System.
 
 ---
 
 ## Workspace Structure
 
 ```
-general-coding-agent/
+cursor-multiagent-system/
 ├── core/                         # Source of truth — agent definitions
 │   ├── agent.md                  #   Orchestrator (deploys to ~/.cursor/commands/)
 │   └── subagents/                #   Subagent definitions (deploy to ~/.cursor/agents/)
@@ -71,7 +71,7 @@ general-coding-agent/
 | Directories | lowercase, hyphen-separated | `cv2-homework3` |
 | Agent files | lowercase, hyphen-separated `.md` | `qa-specialist.md` |
 | Test folders | descriptive, hyphen-separated | `aml-assignment1` |
-| Results folders | `current/<test-name>/` (renamed to `<version>/` on transition) | `general-coding-agent/results/current/aml-assignment1/` |
+| Results folders | `current/<test-name>/` (renamed to `<version>/` on transition) | `cursor-multiagent-system/results/current/aml-assignment1/` |
 | Session name | `<version>_<test-name>_<model>` | `v1.2_aml-assignment1_gpt-5.4` |
 | Iteration dirs | `current/` while active, `v<N>/` after transition | `iterations/current/`, `iterations/v1.5/` |
 | Self-reflection files | `<test-name>_self_reflection.md` | `cv2-homework3_self_reflection.md` |
@@ -81,11 +81,11 @@ general-coding-agent/
 
 ```
 Task: <one-sentence description>
-Input: general-coding-agent/tests/<test-name>/<file>, ...
-Output: general-coding-agent/results/current/<test-name>/ (file1, file2, ...)
+Input: cursor-multiagent-system/tests/<test-name>/<file>, ...
+Output: cursor-multiagent-system/results/current/<test-name>/ (file1, file2, ...)
 ```
 
-- All paths include `general-coding-agent/` prefix so outputs stay inside the project.
+- All paths include `cursor-multiagent-system/` prefix so outputs stay inside the project.
 - Output always uses `results/current/`. On version transition, `current/` is renamed to `<version>/`.
 
 ---

@@ -1,4 +1,4 @@
-# General Coding Agent
+# Cursor Multiagent System
 
 A multi-agent orchestration system for [Cursor IDE](https://cursor.com/). The **Orchestrator** (tech lead) plans, decomposes tasks into modules, delegates to specialized **subagents**, and drives quality through a structured review pipeline.
 
@@ -51,7 +51,7 @@ Final content review (`verifier` + `qa-specialist` Full) with an **enhancement l
 ## Repository Structure
 
 ```
-general-coding-agent/
+cursor-multiagent-system/
 ├── core/                          # Agent definitions (source of truth)
 │   ├── agent.md                   #   Orchestrator (-> ~/.cursor/commands/)
 │   └── subagents/                 #   Subagent definitions (-> ~/.cursor/agents/)

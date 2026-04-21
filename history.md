@@ -228,6 +228,23 @@ Versioning scheme and commit protocol.
 - `llm.md` — new "Versioning" section with scheme + commit protocol
 - `history.md` — v2.1.1 and v2.1.2 entries added
 
+## v2.4.3 (2026-04-17)
+
+Project renamed to **Cursor Multiagent System**.
+
+### Changes
+
+- **GitHub repo renamed** from `general-coding-agent` to `cursor-multiagent-system`. Remote URL auto-updated on local clone.
+- **Local directory renamed** from `general-coding-agent/` to `cursor-multiagent-system/`.
+- **`README.md` title** updated to "Cursor Multiagent System"; repository-structure tree root updated accordingly.
+- **`llm.md`** — opening line and all path examples (`Workspace Structure` tree, `prompt.txt` format, naming conventions) updated to use the new name.
+
+### Files Modified
+
+- `README.md`
+- `llm.md`
+- `history.md`
+
 ## v2.4.2 (2026-04-17)
 
 Single-branch (main-only) policy.
