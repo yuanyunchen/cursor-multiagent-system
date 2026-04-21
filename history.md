@@ -228,6 +228,21 @@ Versioning scheme and commit protocol.
 - `llm.md` — new "Versioning" section with scheme + commit protocol
 - `history.md` — v2.1.1 and v2.1.2 entries added
 
+## v2.4.2 (2026-04-17)
+
+Single-branch (main-only) policy.
+
+### Changes
+
+- **Merged `v2.3-quality-overhaul` into `main`** (fast-forward, all commits preserved); feature branch deleted locally and on origin. Going forward, `main` is the only working branch.
+- **Branch protection adjusted.** `enforce_admins` disabled so the repo owner can push directly to `main`. Review requirement kept for external contributors; force-push and branch deletion on `main` remain blocked.
+- **`llm.md` — new "Git Branch Policy" section.** Documents the main-only policy, admin direct-push, PR-required-for-externals, feature-branches-only-for-high-risk-work. Commit protocol step list updated to state "push directly to `main`" explicitly.
+
+### Files Modified
+
+- `llm.md`
+- `history.md`
+
 ## v2.4.1 (2026-04-17)
 
 README alignment with v2.4 logic.

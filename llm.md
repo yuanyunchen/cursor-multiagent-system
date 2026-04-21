@@ -178,6 +178,17 @@ iterations/
 
 ---
 
+## Git Branch Policy
+
+**Single branch: `main`.** Commit directly to `main` for all normal work — fixes, iterations, version bumps, documentation. No per-change feature branches.
+
+- **Owner / admin push directly to `main`.** Branch protection is configured with `enforce_admins: false`, so admins bypass the PR review requirement. Force-push and branch deletion on `main` remain blocked and must not be circumvented.
+- **External contributors use PRs.** Protection still requires 1 approving review before merge. An admin reviews and merges on the contributor's behalf.
+- **Feature branches are reserved for high-risk work only.** Long-running experiments or anything that might leave `main` broken. Name `<scope>-<topic>` (e.g., `experiment-parallel-agents`), merge back as soon as the work stabilizes, and delete both locally (`git branch -d`) and on the remote (`git push origin --delete <branch>`) in the same session — no lingering branches.
+- **Never force-push `main`. Never delete `main`.** These are blocked by protection; do not attempt workarounds.
+
+This removes PR-ceremony overhead for solo work and keeps history linear.
+
 ## Versioning
 
 **Scheme:** `major.minor.patch` (e.g., v2.1.3)
@@ -189,7 +200,8 @@ iterations/
 1. Deploy first (`./scripts/deploy.sh`)
 2. Append a version entry to `history.md` (date, one-line summary, changes, files modified)
 3. Commit with message `v<N>: <short summary>`
-4. Report to user: old version -> new version + change summary
+4. Push directly to `main` (`git push origin main`)
+5. Report to user: old version -> new version + change summary
 
 ## Version Transition
 
