@@ -9,7 +9,7 @@ Orchestrator (agent.md)
 ├── executor        — General-purpose implementation: code, commands, tests, setup
 ├── report-writer   — Report writing and formatting: PDF, HTML, slides
 ├── verifier        — Exhaustive code reviewer at senior-engineer bar (fixes minor, reports major, proposes enhancements)
-├── qa-specialist   — Black-box output inspector (Full / Format / Lightweight modes)
+├── qa-specialist   — Exhaustive black-box output inspector at senior-engineer bar (proposes enhancements; Full / Format / Lightweight modes)
 ├── debugger        — Targeted fixes from issue lists (scoped to allowed files)
 ├── file-extractor  — Document & web page extraction (PDF, DOCX, PPTX, URLs)
 ├── explore         — (built-in) Codebase navigation and keyword search
@@ -24,8 +24,8 @@ Orchestrator (agent.md)
 2. Plan                 — Decompose into modules with dependency graph, define pipelines
 3. Module execution     — Per-module Execute -> Check -> Fix -> Reflect loop with mandatory qa-specialist for user-facing output
 4. Final content review — Verifier (code) + qa-specialist (Full, content) with enhancement loop (mandatory gate)
-5. Report               — Report-writer produces the final deliverable (if needed)
-6. Format QA            — qa-specialist (Format mode) on the rendered deliverable
+5. Report               — Report-writer produces the final deliverable (if formatting is needed)
+6. Format QA            — qa-specialist (Format mode) on the rendered deliverable (skipped if step 5 was skipped)
 7. Deliver              — Summary to user (open issues, deviations, declined enhancements explicit)
 ```
 
@@ -83,6 +83,18 @@ This syncs:
 ## Usage
 
 In Cursor, invoke the orchestrator with `/agent` followed by your task. Provide input files and specify the output directory.
+
+The orchestrator creates a `.workspace/` directory inside the output dir as persistent working memory:
+
+- `brief.md` — frozen task brief (original task, hard constraints, deliverable definition). Never edited after initialization.
+- `plan.md` — running plan with per-module sections, updated at every reflect gate (progress, new thinking, problem log, plan adjustments).
+- `index.md` — document registry and per-module progress ledger (primary "where am I" source after context compaction).
+- `documents/module<N>/` — subagent reports for each module (executor, verifier, qa, debugger).
+- `documents/final/` — reports from the final content review and Format QA gates.
+
+Task outputs live alongside `.workspace/` in canonical folders — created only as needed, nothing else allowed at the top level:
+
+`inputs/`, `src/`, `data/`, `outputs/` (runtime artifacts), `deliverables/` (the single authoritative endpoint), `save/` (archive for superseded versions).
 
 If the orchestrator reports that a required file is missing, it will create `.workspace/uploads/` for that task and ask you to place the missing files there.
 

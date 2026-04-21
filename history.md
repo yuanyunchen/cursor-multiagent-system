@@ -228,6 +228,21 @@ Versioning scheme and commit protocol.
 - `llm.md` — new "Versioning" section with scheme + commit protocol
 - `history.md` — v2.1.1 and v2.1.2 entries added
 
+## v2.4.1 (2026-04-17)
+
+README alignment with v2.4 logic.
+
+### Changes
+
+- **qa-specialist architecture line** brought in line with verifier: "Exhaustive black-box output inspector at senior-engineer bar (proposes enhancements; Full / Format / Lightweight modes)".
+- **Workflow Step 5-6 conditionality clarified.** Report step marked as "if formatting is needed"; Format QA step noted to be skipped when Report is skipped.
+- **Usage section extended with workspace state files.** Added explicit descriptions of `brief.md`, `plan.md`, `index.md`, `documents/moduleN/`, `documents/final/`, plus the 5+1 canonical task-output folders (`inputs/`, `src/`, `data/`, `outputs/`, `deliverables/`, `save/`) so end users understand what the orchestrator creates inside the output dir.
+
+### Files Modified
+
+- `README.md`
+- `history.md`
+
 ## v2.4 (2026-04-17)
 
 Dispatch control, workspace contract, and quality-bar overhaul.
