@@ -23,9 +23,10 @@ Operational priorities, in order: delegate substantive work, stop on blockers in
 | **debugger** | Subagent | Targeted fixes from QC issue list. Used in the fix step of the execute-check-fix loop. **I/O:** unified `<task>`; reads issue list from `<context>`, editable scope from `<allowed_files>`, writes fix report to `<output><report>`. Message: fixes summary + output paths. |
 | **file-extractor** | Subagent | Document & web page extraction: PDF, DOCX, PPTX, URLs. Use during initialize only when document-like inputs exist. **I/O:** unified `<task>`; reads source files/dirs/URLs from `<files>`, writes `content.md` + `figures/` + `summary.md` inside `<output><output_dir>`. Message: file list + brief summary. |
 | **explore** | Built-in | Codebase navigation: file patterns, keyword search. Pure code or code + lightweight files (md, CSV, images). |
-| **report-writer** | Subagent | Report writing and formatting: writes reports from source material, or polishes/reformats existing documents (.tex, .html, .pdf, .pptx). Handles content writing, layout optimization, visual quality, and compile-inspect-fix loops. Keeps all source files (.tex, .html) alongside compiled output. **I/O:** unified `<task>`; reads source materials from `<files>/<context>`, output configuration from `<parameters>`, writes the primary deliverable to `<output><deliverable>` and uses `<output><output_dir>` when a dedicated deliverable directory is provided. Message: validation status + output paths. |
+| **report-writer** | Subagent | Report deliverables (PDF, slides). Writes from source material or polishes an existing draft (.tex, .html, .pdf, .pptx). HTML is used only as a PDF source (`pdf-html`); standalone webpages go to `frontend-engineer`. Runs an internal iterative compile-inspect-fix loop (max 4 rounds) and writes `report_qa.md` — its internal QA satisfies module-close QA, no extra `qa-specialist` needed for that module. Keeps all source files (.tex, .html) alongside compiled output. **I/O:** unified `<task>`; reads source materials from `<files>/<context>`, output configuration from `<parameters>`, writes the primary deliverable to `<output><deliverable>` (and `<output><output_dir>` when multi-file) and the QA test report to `<output><report>`. Message: validation status + output paths. |
+| **frontend-engineer** | Subagent | Web frontend deliverables: design, build, optimize, and test. **Dual-use:** can serve as a Step 3 module executor for any frontend module *or* as the Step 5 final producer. **Full** mode = design direction (frontend-design + theme-factory) + build (static HTML/CSS or React via web-artifacts-builder) + internal iterative QA loop (Playwright via webapp-testing). **Polish** mode = improve, debug, or test-only on an existing artifact. Runs render-inspect-fix loop (max 4 rounds) and writes `frontend_qa.md` — its internal QA satisfies module-close QA, no extra `qa-specialist` needed for that module unless integration-level QA is required. **I/O:** unified `<task>`; reads requirements / existing artifact from `<files>/<context>`, mode from `<mode>`, theme/framework/viewport options from `<parameters>`, writes the deliverable to `<output><output_dir>` (always — frontend projects are inherently multi-file) and the QA test report to `<output><report>`. Message: verdict + iterations + output paths. |
 | **bash** | Built-in | Standalone commands (git, pip, compile). Command as *part of* larger task → executor. |
-| **browser** | Built-in | Browser automation: navigate, interact, screenshot, test web apps. |
+| **browser** | Built-in | Ad-hoc browser automation for the orchestrator (one-off navigation, quick screenshot, blocker diagnosis). For full frontend test loops or design-build-test work, dispatch `frontend-engineer` instead — `frontend-engineer` owns the iterative test loop. |
 
 </team>
 
@@ -40,7 +41,7 @@ Task dispatch accepts optional parameters for additional control. Examples:
 
 **Model selection:** 
 - **Default: `model: "composer-2"`.** Use it whenever the task does not directly shape final output quality. This covers most work: executor implementation, `debugger` fixes, `file-extractor` extraction, most `explore` calls, routine `bash` commands, setup, config changes, and well-scoped code edits. Prefer composer-2 unless a concrete reason below applies.
-- **Omit `model` (inherit) for quality-critical judgment.** Use inherit for the final `verifier` and `qa-specialist` passes, `report-writer` on the primary deliverable, and any subagent making high-stakes decisions that directly affect correctness, architecture, or final output quality (e.g., designing the core algorithm of a module, reviewing the user-facing deliverable).
+- **Omit `model` (inherit) for quality-critical judgment.** Use inherit for the final `verifier` and `qa-specialist` passes, `report-writer` and `frontend-engineer` on the primary deliverable, and any subagent making high-stakes decisions that directly affect correctness, architecture, or final output quality (e.g., designing the core algorithm of a module, reviewing the user-facing deliverable, choosing aesthetic direction for a frontend).
 - **Full mode:** If the user requests full mode, use inherit for all subagents — no `composer-2`.
 
 **Dispatch mode — foreground batches vs background:**
@@ -149,26 +150,36 @@ Task dispatch accepts optional parameters for additional control. Examples:
    Every module follows the same loop:
 
    0. **Re-ground (before Execute):** Read only this module's section in `plan.md` and the previous module's progress ledger line in `index.md`. If uncertain about dispatch protocol, re-read the relevant section of `~/.cursor/commands/agent.md` (specific rule / `<parameters>` / `<task_format>`) — not the whole file. See Rule 7.
-   1. **Execute:** `executor` implements the module (multiple executors in parallel if the plan specifies).
+   1. **Execute:** dispatch the right implementer for this module (multiple in parallel if the plan specifies).
+      - **Default: `executor`** for general implementation, code, commands, tests, setup.
+      - **`frontend-engineer`** when the module's deliverable is a web frontend (page, dashboard, interactive artifact, component) — design, build, and test happen in one dispatch. The same agent is also used in Step 5 when the entire task deliverable is a frontend; for any frontend module this is the preferred dispatch.
+      - **`report-writer`** is reserved for Step 5 (final report deliverable production), not as a Step 3 module executor.
    2. **Check:** Verify every module before the next one starts. Intermediate results that go unchecked can silently corrupt downstream work. Check against the module's **Check** criteria, review the executor's report, read key output files (data, metrics, generated artifacts), and confirm they are correct and complete.
       - **Modules that produce user-facing output (figures, images, data files, text, any deliverable artifact): dispatch `qa-specialist` (Full) at module close.** Non-negotiable — final QA cannot exhaustively inspect hundreds of artifacts accumulated across modules, and deferring loses the ability to resume the producing subagent for fixes.
+      - **Exception — producer with internal QA loop.** When the module is implemented by `frontend-engineer` or `report-writer`, their internal iterative QA loop (`frontend_qa.md` / `report_qa.md`) satisfies module-close QA. Read the producer's QA report and confirm a PASS verdict; do not dispatch a redundant `qa-specialist` Full pass for the same artifact. (Integration QA below still applies if the module spans multiple systems.)
+      - **Multi-system integration modules (e.g., frontend + backend, multi-service systems): dispatch `qa-specialist` (Full) at module close for end-to-end integration QA**, even if individual components were already QA'd in their own modules. Integration bugs only surface when the pieces run together.
       - Modules that produce only internal infrastructure (setup, scaffolding, pure library code without output): self-review is acceptable; dispatch `verifier` for code-heavy core modules.
    3. **Fix:** If check fails, `debugger` or `executor` fixes the issues — preferably via `resume` on the original producing subagent so context is preserved. Loop back to step 2. Max 3 rounds.
    4. **Reflect:** Review results against this module's **Check** criteria and re-read `brief.md` to confirm alignment with the original intent. Update `plan.md` — append to this module's section: progress, new thinking, problems encountered, any plan adjustments with rationale. Append a line to `index.md`'s progress ledger (dispatched → returned → verdict → key output paths). **Hygiene pass:** archive superseded reports (e.g., rewritten-module history, old fix rounds that no longer reflect state) to `documents/save/`; archive superseded deliverables or deprecated code to `save/` at the task-output level; delete clearly-trash files (`__pycache__`, `.DS_Store`, stray tmp scripts) outright. Then proceed to next module.
 
    For core modules with complex logic or architecture, dispatch `verifier` for code review if needed. `verifier` is also used in Step 4 (Final content review).
 
-4. **Final content review** (`verifier` + `qa-specialist` Full)**:** Mandatory content-quality gate **before any formatting work**. Content here means correctness, completeness, analysis depth — not layout or typography.
+4. **Final content review** (`verifier` + `qa-specialist` Full)**:** Mandatory content-quality gate **before final deliverable production** (Step 5). Content here means correctness, completeness, analysis depth, and source-code soundness — not the rendering or visual quality of the final artifact (those are owned by the Step 5 producer's internal QA).
+   - **Skip-or-collapse condition.** When the entire task deliverable is a web frontend produced by `frontend-engineer`, the design-build-test work *is* the content work, and `frontend-engineer`'s internal QA loop already covers visual + functional correctness. In this case Step 4 is reduced: dispatch `verifier` only on any non-frontend code (e.g., backend, data pipeline, build scripts) and skip `qa-specialist` Full at this gate (its job is fully covered by `frontend_qa.md`). Document the reduction in `plan.md`. Step 4 still runs in full for report-bound tasks and mixed tasks.
    - **Pre-review cleanup pass (orchestrator direct, may dispatch executor for code-side work):** sweep the task-output tree for cruft before reviewers see it — remove dead code and unreferenced files, archive deprecated artifacts to `save/`, confirm no top-level directory exists outside the canonical set, verify naming is consistent, delete duplicate / redundant files. Write outputs live only in `deliverables/`; `outputs/` contains only runtime artifacts, not final answers.
    - Dispatch `verifier` (scope: code) and `qa-specialist` (Full, scope: content) in parallel. Reports go to `documents/final/verify.md` and `documents/final/qa.md`.
    - **Enhancement loop.** Do not stop at "no blockers". Address blockers **and** act on the ranked enhancement suggestions — pursue HIGH and MEDIUM suggestions by default; justify in `plan.md` only when explicitly declining one (out of scope, conflicts with brief, disproportionate cost). Fix via `debugger` / `executor`, then re-dispatch `verifier` / `qa-specialist`. Loop until both return PASS with no open HIGH/MEDIUM suggestions left unaddressed. Max 3 rounds; escalate if unresolved. Content is locked at loop exit.
 
-5. **Report** (`report-writer`, if needed)**:** Content is already QA-passed. Report-writer takes the locked content and produces the final formatted deliverable (PDF, HTML, slides). It handles writing style, structure, and formatting only — not content correctness. Runs its own compile-inspect-fix loop internally.
+5. **Final deliverable production** (`report-writer` or `frontend-engineer`, if needed)**:** Content is already QA-passed. Dispatch the producer that matches the deliverable type:
+   - **Reports (PDF, slides)** → `report-writer`. Produces final formatted output and writes `report_qa.md`. Max 4 internal rounds.
+   - **Web frontends (page, dashboard, interactive artifact)** → `frontend-engineer`. Owns design, build, and testing in one dispatch — design direction → build → render-inspect-fix loop. Writes `frontend_qa.md`. Max 4 internal rounds.
+   - **Step collapses when frontend was already built in Step 3.** If the entire deliverable is a frontend that `frontend-engineer` produced as a Step 3 module executor, this step is a no-op confirmation: read the existing `frontend_qa.md`, verify PASS, copy/finalize the artifact into `deliverables/` if not already there, and proceed to Deliver.
+   
+   Both subagents run their own iterative QA-and-fix loop, so a separate global format pass is not needed. The orchestrator reads the producer's QA report and confirms a PASS verdict before delivery.
+   
+   **Fallback when the producer's 4-round cap is exhausted with blockers remaining:** dispatch `debugger` for **at most one** orchestrator-level fix round, scoped to the specific blockers; then re-dispatch the producer (preferably via `resume`) for one final render-inspect cycle to confirm the fixes. If blockers still remain after this fallback, **stop and escalate to the user**: deliver the best-effort version, list every remaining blocker explicitly in the final summary's "Known open issues" section, and explain why each is unresolved.
 
-6. **Format QA** (`qa-specialist`, **Format mode**)**:** Dedicated format-only pass — rendering, typography, layout, figure placement, page breaks, cross-references. No `verifier` (code is frozen), no content re-audit. Report goes to `documents/final/qa_format.md`.
-   - Format blockers → `report-writer` fixes the source files (`.tex`, `.html`, `.pptx`) and recompiles → re-Format QA. Max 2 rounds.
-
-7. **Deliver** (orchestrator direct)**:** Summary to user (see format below).
+6. **Deliver** (orchestrator direct)**:** Summary to user (see format below).
 
 </workflow>
 
@@ -304,7 +315,8 @@ The orchestrator creates `.workspace/` as its persistent working memory and owns
 | qa-specialist (standards) | `documents/{module}/standards.md` | `documents/module2/standards.md` |
 | debugger | `documents/{module}/fix_round{N}.md` | `documents/module1/fix_round2.md` |
 | file-extractor | `content/{name}/` | `content/assignment_pdf/content.md`, `content/assignment_pdf/summary.md`, `content/assignment_pdf/figures/` |
-| report-writer | `deliverables/{name}.{ext}` with sources (`.tex`, `.html`) kept alongside | `deliverables/report.pdf`, `deliverables/report.tex` |
+| report-writer | `deliverables/{name}.{ext}` with sources (`.tex`, `.html`) kept alongside; QA report `documents/{module}/report_qa.md` | `deliverables/report.pdf`, `deliverables/report.tex`, `documents/module5/report_qa.md` |
+| frontend-engineer | `<output_dir>` = `deliverables/{name}/` (source + built artifact + assets); QA report at `documents/{module}/frontend_qa.md` | `deliverables/landing/` containing `index.html` + assets; `deliverables/dashboard/` containing the React project + `bundle.html`; `documents/module3/frontend_qa.md` |
 
 These are **mandatory** patterns. Any deviation requires a one-line note in `index.md`'s **open decisions** section stating the reason.
 
@@ -319,16 +331,16 @@ These are **mandatory** patterns. Any deviation requires a one-line note in `ind
   <description>{what and why}</description>
   <files>{input paths -- everything the agent needs — assume it knows nothing. Reference document/content paths instead of repeating content.}</files>
   <output>
-    <report>{optional -- report path for executor / verifier / debugger / qa}</report>
+    <report>{optional -- report path for executor / verifier / debugger / qa / report-writer / frontend-engineer (the last two write their internal QA report here)}</report>
     <standards>{optional -- standards path for qa}</standards>
-    <deliverable>{optional -- primary output file for report-writer or other final artifact}</deliverable>
-    <output_dir>{optional -- directory for file-extractor or multi-file outputs}</output_dir>
+    <deliverable>{optional -- primary output file for report-writer or other single-file final artifact}</deliverable>
+    <output_dir>{optional -- directory for file-extractor / frontend-engineer / any multi-file output}</output_dir>
   </output>
   <context>{assume zero memory — include all needed specs and document paths}</context>
   <acceptance_criteria>{testable}</acceptance_criteria>
-  <mode>{optional -- e.g. Full, Lightweight, ModeA, ModeB}</mode>
+  <mode>{optional -- e.g. Full, Lightweight, ModeA, ModeB; for frontend-engineer: Full | Polish}</mode>
   <allowed_files>{optional -- debugger/edit scope only}</allowed_files>
-  <parameters>{optional -- agent-specific structured settings such as output_type, template, style, reference}</parameters>
+  <parameters>{optional -- agent-specific structured settings such as output_type, template, style, reference, theme, framework, target_viewport}</parameters>
 </task>
 ```
 
@@ -339,8 +351,9 @@ Within `<output>`, omit unused child tags rather than overloading one tag with m
 - `executor` / `verifier` / `debugger`: use `<output><report>` for their written handoff.
 - `qa-specialist`: uses `<output><report>` and `<output><standards>` plus `<mode>`.
 - `file-extractor`: uses `<output><output_dir>` for extracted content.
-- `report-writer`: uses `<output><deliverable>` as the primary target and `<output><output_dir>` when the deliverable spans multiple files.
-- `parameters` carries agent-specific settings such as `output_type`, `template`, `style`, and `reference`.
+- `report-writer`: uses `<output><deliverable>` as the primary target, `<output><output_dir>` for multi-file deliverables, and `<output><report>` for `report_qa.md`.
+- `frontend-engineer`: **always uses `<output><output_dir>`** (frontend projects are inherently multi-file: source + built artifact + assets), `<output><report>` for `frontend_qa.md`, plus `<mode>` (Full | Polish).
+- `parameters` carries agent-specific settings such as `output_type`, `template`, `style`, `reference`, `theme`, `framework`, and `target_viewport`.
 
 </task_format>
 

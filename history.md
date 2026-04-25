@@ -1,5 +1,39 @@
 # Version History
 
+## v2.5 (2026-04-24)
+
+New `frontend-engineer` subagent; workflow integration of design + build + test for web frontends; removal of standalone Format QA step.
+
+### Changes
+
+- **New subagent `frontend-engineer`.** Owns the entire web-frontend deliverable in one role: design direction (via `frontend-design` + `theme-factory`), build (static HTML/CSS or React via `web-artifacts-builder`), and an internal iterative render-inspect-fix QA loop (via `webapp-testing` / Playwright). Two modes — **Full** (design + build + test) and **Polish** (improve / debug / test-only on an existing artifact). Writes `frontend_qa.md` (mirrors `qa-specialist`'s coverage / blockers / enhancement sections) and iterates up to 4 rounds. Two equally weighted quality axes — design intentionality and the QA loop.
+- **`frontend-engineer` is dual-use.** Can serve as a Step 3 module executor for any frontend module *or* as the Step 5 final producer when the entire deliverable is a frontend. Step 5 collapses into a confirmation when frontend was already built in Step 3.
+- **Workflow Step 6 (Format QA) removed.** `report-writer` and `frontend-engineer` each run their own internal iterative QA loop and write a producer QA report (`report_qa.md` / `frontend_qa.md`), so a separate global format-QA pass is no longer in the workflow. New numbered steps: 1) Initialize, 2) Plan, 3) Module execution, 4) Final content review, 5) Final deliverable production, 6) Deliver.
+- **Step 4 wording — "before final deliverable production".** Replaces "before any formatting work". Step 4 also gains a **Skip-or-collapse condition**: when the entire deliverable is a frontend produced by `frontend-engineer`, dispatch `verifier` only on non-frontend code and skip `qa-specialist` Full at this gate (its job is fully covered by `frontend_qa.md`).
+- **Module-close QA — internal-QA exception.** When a module is implemented by `frontend-engineer` or `report-writer`, their internal QA report satisfies module-close QA; the orchestrator confirms PASS verdict from the producer's report and does **not** dispatch a redundant `qa-specialist` Full pass. Multi-system integration QA still runs.
+- **Producer 4-round fallback.** When a producer hits its 4-round cap with blockers remaining, the orchestrator may dispatch `debugger` for at most one fix round, then `resume` the producer for one final render-inspect cycle. If blockers persist, stop and escalate to the user with a best-effort delivery plus a "Known open issues" enumeration.
+- **`frontend-engineer` always uses `<output><output_dir>`.** Frontend projects are inherently multi-file (source + built artifact + assets), so the I/O contract is single-tagged for clarity. `<task_format>` notes and the `<workspace>` Naming Conventions table updated accordingly.
+- **`browser` built-in scope clarified.** Reserved for orchestrator ad-hoc browser automation (one-off navigation, quick screenshot, blocker diagnosis). Full frontend test loops and design-build-test work go to `frontend-engineer`.
+- **Frontend skills brought into the project.** `skills/frontend-design/`, `skills/theme-factory/`, `skills/web-artifacts-builder/`, `skills/webapp-testing/` are now tracked alongside the existing `file-content-extraction`, `webpage-content-extraction`, `report-builder`, and `pptx` skills. `deploy.sh` already iterates over `skills/*/`, so no script change was needed; the project is now self-contained for fresh deployments.
+- **`report-writer` scope tightened.** Stays the report producer (PDF, slides). HTML is used only as a PDF source (`pdf-html`); standalone webpages are delegated to `frontend-engineer`. Internal QA loop now writes `report_qa.md` (parallel to `frontend_qa.md`) — same exception applies for module-close QA.
+- **Documentation alignment.** `README.md`, `llm.md`, and `core/agent.md` `<team>` table all reflect the new subagent, the dual-use dispatch model, the internal-QA exception, and the removed Format QA step.
+
+### Files Modified
+
+- `core/agent.md` — `<team>` table (added `frontend-engineer` row, updated `report-writer` row, clarified `browser` scope), `<workflow>` Step 3 Execute (dispatch model), Step 3 Check (internal-QA exception), Step 4 (rewording + skip-or-collapse), Step 5 (collapse + 4+1 fallback), removed Step 6 Format QA, `<task_format>` (frontend-engineer uses `output_dir`), Naming Conventions table
+- `core/subagents/frontend-engineer.md` — new file
+- `core/subagents/report-writer.md` — YAML description, role intro, internal QA loop section, `report_qa.md` format, rules (HTML-as-PDF-source only, standalone webpage delegation)
+- `README.md` — architecture (added `frontend-engineer`, clarified `browser`), workflow (6 steps), tiered QC table, model selection, repository structure (added 4 frontend skills)
+- `llm.md` — workspace tree (added 4 frontend skills), Core File Roles (added `frontend-engineer.md` + 4 skill rows)
+- `skills/frontend-design/`, `skills/theme-factory/`, `skills/web-artifacts-builder/`, `skills/webapp-testing/` — new (copied from `~/.cursor/skills/`)
+- `history.md` — v2.5 entry
+
+### Tested On
+
+- Manual cross-file consistency review (`agent.md`, `frontend-engineer.md`, `report-writer.md`, `README.md`, `llm.md`) — workflow numbering, dispatch model, I/O contract, Step 6 removal
+- IDE lint check on modified markdown files (no linter errors)
+- `deploy.sh` dry-run via actual deploy: 1 command + 7 subagents + 8 skills synced, including the 4 newly-tracked frontend skills
+
 ## v1 (2026-03-10)
 
 Initial release of the multi-agent orchestration system for Cursor IDE.

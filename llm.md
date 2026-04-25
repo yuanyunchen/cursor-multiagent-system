@@ -13,6 +13,7 @@ cursor-multiagent-system/
 │   └── subagents/                #   Subagent definitions (deploy to ~/.cursor/agents/)
 │       ├── debugger.md
 │       ├── report-writer.md
+│       ├── frontend-engineer.md
 │       ├── executor.md
 │       ├── file-extractor.md
 │       ├── qa-specialist.md
@@ -26,7 +27,20 @@ cursor-multiagent-system/
 │   │   ├── scripts/              #     build.py, validate_pdf.py, longtable_to_tabular.lua
 │   │   ├── templates/            #     iclr/, cvpr/ (.sty, .bst)
 │   │   └── styles/               #     blue-clean.html
-│   └── pptx/                     #   Slide creation/editing skill (full suite)
+│   ├── pptx/                     #   Slide creation/editing skill (full suite)
+│   ├── frontend-design/          #   Aesthetic direction, typography, motion, layout (frontend-engineer)
+│   │   └── SKILL.md
+│   ├── theme-factory/            #   Color palette + font pairing themes (frontend-engineer)
+│   │   ├── SKILL.md
+│   │   ├── theme-showcase.pdf
+│   │   └── themes/
+│   ├── web-artifacts-builder/    #   React + Tailwind + shadcn artifact scaffold (frontend-engineer)
+│   │   ├── SKILL.md
+│   │   └── scripts/              #     init-artifact.sh, bundle-artifact.sh
+│   └── webapp-testing/           #   Playwright-based render/test/console capture (frontend-engineer)
+│       ├── SKILL.md
+│       ├── scripts/              #     with_server.py
+│       └── examples/
 ├── scripts/                      # Utility scripts
 │   └── deploy.sh                 #   Sync core/, skills/ to Cursor
 ├── tests/                        # Test cases for evaluating agent behavior
@@ -96,7 +110,8 @@ Output: cursor-multiagent-system/results/current/<test-name>/ (file1, file2, ...
 |------|-----------|------|
 | `core/agent.md` | `~/.cursor/commands/agent.md` | Orchestrator: plans, delegates, manages quality, maintains workspace, selects models. |
 | `core/subagents/executor.md` | `~/.cursor/agents/executor.md` | General-purpose implementation. |
-| `core/subagents/report-writer.md` | `~/.cursor/agents/report-writer.md` | Report deliverables: writes content + formats directly (PDF, web, slides). |
+| `core/subagents/report-writer.md` | `~/.cursor/agents/report-writer.md` | Report deliverables (PDF, slides). HTML used only as PDF source; standalone webpages go to `frontend-engineer`. Internal QA loop writes `report_qa.md`. |
+| `core/subagents/frontend-engineer.md` | `~/.cursor/agents/frontend-engineer.md` | Web frontend deliverables: design, build, optimize, and test. Two modes (Full / Polish). Uses `~/.cursor/skills/frontend-design`, `theme-factory`, `web-artifacts-builder`, `webapp-testing`. Internal QA loop writes `frontend_qa.md`. |
 | `core/subagents/debugger.md` | `~/.cursor/agents/debugger.md` | Targeted fixes within scoped file list. |
 | `core/subagents/qa-specialist.md` | `~/.cursor/agents/qa-specialist.md` | End-to-end output inspector (black-box, never reads code). |
 | `core/subagents/verifier.md` | `~/.cursor/agents/verifier.md` | Comprehensive code reviewer; fixes minor issues, reports major ones. |
@@ -105,6 +120,10 @@ Output: cursor-multiagent-system/results/current/<test-name>/ (file1, file2, ...
 | `skills/webpage-content-extraction/` | `~/.cursor/skills/webpage-content-extraction/` | Web page extraction instructions for file-extractor. |
 | `skills/report-builder/` | `~/.cursor/skills/report-builder/` | Build scripts, LaTeX templates, HTML styles for report-writer. |
 | `skills/pptx/` | `~/.cursor/skills/pptx/` | Slide creation/editing skill for report-writer. |
+| `skills/frontend-design/` | `~/.cursor/skills/frontend-design/` | Aesthetic direction guidelines for frontend-engineer. |
+| `skills/theme-factory/` | `~/.cursor/skills/theme-factory/` | Color/font theme presets (10 themes) for frontend-engineer. |
+| `skills/web-artifacts-builder/` | `~/.cursor/skills/web-artifacts-builder/` | React + Tailwind + shadcn artifact scaffold and bundling for frontend-engineer. |
+| `skills/webapp-testing/` | `~/.cursor/skills/webapp-testing/` | Playwright-based webapp testing toolkit for frontend-engineer. |
 | `skills/file-content-extraction/extract_doc.py` | `~/.cursor/skills/file-content-extraction/extract_doc.py` | Document content + figure extraction script. |
 
 ---
