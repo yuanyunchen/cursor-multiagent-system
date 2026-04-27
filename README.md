@@ -7,8 +7,8 @@ A multi-agent orchestration system for [Cursor IDE](https://cursor.com/). The **
 ```
 Orchestrator (agent.md)
 ├── executor          — General-purpose implementation: code, commands, tests, setup
-├── report-writer     — Report deliverables (PDF, slides). HTML used only as PDF source. Internal iterative QA loop, writes report_qa.md.
-├── frontend-engineer — Web frontend deliverables: design, build, optimize, test. Two modes (Full / Polish). Internal iterative QA loop, writes frontend_qa.md.
+├── report-writer     — Professional LaTeX PDF reports only. Owns content + LaTeX formatting, uses write-report templates, requests missing context when needed, writes report_qa.md.
+├── frontend-engineer — HTML reports/posters, static pages, dashboards, and interactive web deliverables. Design, build, optimize, test. Standard render/test-inspect-fix-cleanup QA loop, writes frontend_qa.md.
 ├── verifier          — Exhaustive code reviewer at senior-engineer bar (fixes minor, reports major, proposes enhancements)
 ├── qa-specialist     — Exhaustive black-box output inspector at senior-engineer bar (proposes enhancements; Full / Format / Lightweight modes)
 ├── debugger          — Targeted fixes from issue lists (scoped to allowed files)
@@ -25,7 +25,7 @@ Orchestrator (agent.md)
 2. Plan                             — Decompose into modules with dependency graph, define pipelines
 3. Module execution                 — Per-module Execute -> Check -> Fix -> Reflect loop with mandatory qa-specialist for user-facing output; multi-system integration modules also get end-to-end qa-specialist Full
 4. Final content review             — Verifier (code) + qa-specialist (Full, content) with enhancement loop (mandatory gate)
-5. Final deliverable production     — report-writer (PDF/slides) or frontend-engineer (web frontends) produces the final deliverable, running its own internal iterative QA loop (max 4 rounds)
+5. Final deliverable production     — report-writer (LaTeX PDF reports) or frontend-engineer (HTML reports/posters/static pages/dynamic web apps) produces the final deliverable, running its own internal iterative QA loop (max 4 rounds)
 6. Deliver                          — Summary to user (open issues, deviations, declined enhancements explicit)
 ```
 
@@ -40,7 +40,7 @@ Every module runs an Execute -> Check -> Fix -> Reflect loop (max 3 rounds):
 | **Core code module** (complex logic or architecture) | `verifier` for code review | Modules that directly determine correctness or architecture |
 | **Internal infrastructure only** (setup, scaffolding, pure library) | Orchestrator self-review | Modules with no user-facing output |
 
-Final content review (`verifier` + `qa-specialist` Full) with an **enhancement loop** is mandatory before final deliverable production. The producers (`report-writer` for PDFs / slides, `frontend-engineer` for web frontends) each run their own internal iterative QA loop (render-inspect-fix, max 4 rounds, each writing its own QA report — `report_qa.md` or `frontend_qa.md`), so a separate global format-QA pass is not part of the workflow.
+Final content review (`verifier` + `qa-specialist` Full) with an **enhancement loop** is mandatory before final deliverable production. The producers (`report-writer` for LaTeX PDF reports, `frontend-engineer` for HTML reports/posters/static pages/dynamic web apps) each run their own standard iterative QA loop (render/test -> inspect -> fix -> re-verify -> cleanup, max 4 rounds, each writing its own QA report — `report_qa.md` or `frontend_qa.md`), so a separate global format-QA pass is not part of the workflow. `report-writer` owns report content organization as well as LaTeX formatting; if required results, explanations, figures, or requirements are missing, it returns `NEEDS_MORE_CONTEXT` and the orchestrator resumes the same subagent after preparing the missing material. Loop artifacts such as screenshots, page images, temporary PDF exports, traces, logs, and old builds are not final deliverables; only final-round audit evidence may be retained under `.workspace/documents/module<N>/qa_evidence/final/`.
 
 ## Model Selection
 
@@ -59,8 +59,8 @@ cursor-multiagent-system/
 ├── skills/                        # Project-tracked skills (-> ~/.cursor/skills/ via deploy.sh)
 │   ├── file-content-extraction/   #   PDF/DOCX/PPTX extraction (file-extractor)
 │   ├── webpage-content-extraction/#   Web page extraction (file-extractor)
-│   ├── report-builder/            #   Build scripts, LaTeX templates, HTML styles (report-writer)
-│   ├── pptx/                      #   Slide creation/editing (report-writer)
+│   ├── write-report/              #   Report writing standards, template cache, build scripts (report-writer)
+│   ├── pptx/                      #   Slide creation/editing skill
 │   ├── frontend-design/           #   Aesthetic direction (frontend-engineer)
 │   ├── theme-factory/             #   Color/font theme presets (frontend-engineer)
 │   ├── web-artifacts-builder/     #   React + Tailwind + shadcn scaffold (frontend-engineer)
@@ -94,12 +94,12 @@ The orchestrator creates a `.workspace/` directory inside the output dir as pers
 - `brief.md` — frozen task brief (original task, hard constraints, deliverable definition). Never edited after initialization.
 - `plan.md` — running plan with per-module sections, updated at every reflect gate (progress, new thinking, problem log, plan adjustments).
 - `index.md` — document registry and per-module progress ledger (primary "where am I" source after context compaction).
-- `documents/module<N>/` — subagent reports for each module (executor, verifier, qa, debugger; plus producer QA reports `report_qa.md` / `frontend_qa.md` for the deliverable production module).
+- `documents/module<N>/` — subagent reports for each module (executor, verifier, qa, debugger; plus producer QA reports `report_qa.md` / `frontend_qa.md` for the deliverable production module). Final-round producer evidence, when retained for audit, lives under `qa_evidence/final/`; loop intermediate artifacts are cleaned before delivery.
 - `documents/final/` — reports from the final content review gate (`verify.md`, `qa.md`).
 
 Task outputs live alongside `.workspace/` in canonical folders — created only as needed, nothing else allowed at the top level:
 
-`inputs/`, `src/`, `data/`, `outputs/` (runtime artifacts), `deliverables/` (the single authoritative endpoint), `save/` (archive for superseded versions).
+`inputs/`, `src/`, `data/`, `outputs/` (runtime artifacts, cleaned before delivery unless explicitly user-facing), `deliverables/` (the single authoritative endpoint), `save/` (archive for superseded versions).
 
 If the orchestrator reports that a required file is missing, it will create `.workspace/uploads/` for that task and ask you to place the missing files there.
 

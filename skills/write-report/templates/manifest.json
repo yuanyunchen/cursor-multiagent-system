@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "scenario": "academic-article",
+      "template_dir": "academic-article",
+      "source_type": "local-starter",
+      "freshness": "pinned",
+      "last_checked": "2026-04-27",
+      "notes": "Article-style report starter using standard LaTeX article class."
+    },
+    {
+      "scenario": "acm",
+      "template_dir": "acm",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "ACM acmart starter. For named ACM venues, check latest official template before use."
+    },
+    {
+      "scenario": "cvpr",
+      "template_dir": "cvpr",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "CVPR-style starter plus local style files. For named CVPR submissions, check latest official author kit before use."
+    },
+    {
+      "scenario": "elsevier",
+      "template_dir": "elsevier",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "Elsevier elsarticle starter. Check target journal guide before submission."
+    },
+    {
+      "scenario": "generic-professional",
+      "template_dir": "generic-professional",
+      "source_type": "local-default",
+      "freshness": "offline-default",
+      "last_checked": "2026-04-27",
+      "notes": "Offline KOMA-Script professional report starter. Use for generic/internal reports without venue constraints."
+    },
+    {
+      "scenario": "iclr",
+      "template_dir": "iclr",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "ICLR-style starter plus local style files. For named ICLR submissions, check latest official author kit before use."
+    },
+    {
+      "scenario": "ieee",
+      "template_dir": "ieee",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "IEEEtran starter. For named IEEE venues, check latest official template before use."
+    },
+    {
+      "scenario": "springer-lncs",
+      "template_dir": "springer-lncs",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "Springer LNCS llncs starter. For proceedings, check latest official template before use."
+    },
+    {
+      "scenario": "springer-nature",
+      "template_dir": "springer-nature",
+      "source_type": "local-starter",
+      "freshness": "check-latest",
+      "last_checked": "2026-04-27",
+      "notes": "Springer Nature article-structured starter. For journal submissions, check latest official sn-jnl template before use."
+    },
+    {
+      "scenario": "thesis-like",
+      "template_dir": "thesis-like",
+      "source_type": "local-starter",
+      "freshness": "pinned",
+      "last_checked": "2026-04-27",
+      "notes": "Long report starter using KOMA-Script. Use official university template when required."
+    }
+  ]
+}

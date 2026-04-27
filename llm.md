@@ -23,10 +23,10 @@ cursor-multiagent-system/
 │   │   └── SKILL.md
 │   ├── webpage-content-extraction/ # Web page extraction instructions
 │   │   └── SKILL.md
-│   ├── report-builder/            #   Report build tools (scripts, templates, styles)
+│   ├── write-report/              #   LaTeX PDF report writing standards + template cache
+│   │   ├── SKILL.md              #     content architecture + local template selection
 │   │   ├── scripts/              #     build.py, validate_pdf.py, longtable_to_tabular.lua
-│   │   ├── templates/            #     iclr/, cvpr/ (.sty, .bst)
-│   │   └── styles/               #     blue-clean.html
+│   │   └── templates/            #     preprocessed local starters + manifest.json
 │   ├── pptx/                     #   Slide creation/editing skill (full suite)
 │   ├── frontend-design/          #   Aesthetic direction, typography, motion, layout (frontend-engineer)
 │   │   └── SKILL.md
@@ -110,17 +110,17 @@ Output: cursor-multiagent-system/results/current/<test-name>/ (file1, file2, ...
 |------|-----------|------|
 | `core/agent.md` | `~/.cursor/commands/agent.md` | Orchestrator: plans, delegates, manages quality, maintains workspace, selects models. |
 | `core/subagents/executor.md` | `~/.cursor/agents/executor.md` | General-purpose implementation. |
-| `core/subagents/report-writer.md` | `~/.cursor/agents/report-writer.md` | Report deliverables (PDF, slides). HTML used only as PDF source; standalone webpages go to `frontend-engineer`. Internal QA loop writes `report_qa.md`. |
-| `core/subagents/frontend-engineer.md` | `~/.cursor/agents/frontend-engineer.md` | Web frontend deliverables: design, build, optimize, and test. Two modes (Full / Polish). Uses `~/.cursor/skills/frontend-design`, `theme-factory`, `web-artifacts-builder`, `webapp-testing`. Internal QA loop writes `frontend_qa.md`. |
+| `core/subagents/report-writer.md` | `~/.cursor/agents/report-writer.md` | Professional LaTeX PDF reports only. Uses `write-report` for content standards, template cache/update, LaTeX build, and QA. Owns content organization plus formatting; returns `NEEDS_MORE_CONTEXT` when inputs are insufficient. |
+| `core/subagents/frontend-engineer.md` | `~/.cursor/agents/frontend-engineer.md` | Web-based deliverables: HTML reports/posters, static webpages, dashboards, and interactive apps. Uses `~/.cursor/skills/frontend-design`, `theme-factory`, `web-artifacts-builder` when justified, and `webapp-testing` for dynamic validation. Standard render/test-inspect-fix-cleanup QA loop writes `frontend_qa.md`; loop artifacts are removed from final deliverables. |
 | `core/subagents/debugger.md` | `~/.cursor/agents/debugger.md` | Targeted fixes within scoped file list. |
 | `core/subagents/qa-specialist.md` | `~/.cursor/agents/qa-specialist.md` | End-to-end output inspector (black-box, never reads code). |
 | `core/subagents/verifier.md` | `~/.cursor/agents/verifier.md` | Comprehensive code reviewer; fixes minor issues, reports major ones. |
 | `core/subagents/file-extractor.md` | `~/.cursor/agents/file-extractor.md` | Document & web page content extraction. |
 | `skills/file-content-extraction/` | `~/.cursor/skills/file-content-extraction/` | PDF/DOCX/PPTX extraction instructions for file-extractor. |
 | `skills/webpage-content-extraction/` | `~/.cursor/skills/webpage-content-extraction/` | Web page extraction instructions for file-extractor. |
-| `skills/report-builder/` | `~/.cursor/skills/report-builder/` | Build scripts, LaTeX templates, HTML styles for report-writer. |
-| `skills/pptx/` | `~/.cursor/skills/pptx/` | Slide creation/editing skill for report-writer. |
-| `skills/frontend-design/` | `~/.cursor/skills/frontend-design/` | Aesthetic direction guidelines for frontend-engineer. |
+| `skills/write-report/` | `~/.cursor/skills/write-report/` | Report writing standards, scenario routing, template cache/update rules, build scripts, and LaTeX templates for report-writer. |
+| `skills/pptx/` | `~/.cursor/skills/pptx/` | Slide creation/editing skill. |
+| `skills/frontend-design/` | `~/.cursor/skills/frontend-design/` | Aesthetic direction guidelines for frontend-engineer, including HTML reports/posters and web interfaces. |
 | `skills/theme-factory/` | `~/.cursor/skills/theme-factory/` | Color/font theme presets (10 themes) for frontend-engineer. |
 | `skills/web-artifacts-builder/` | `~/.cursor/skills/web-artifacts-builder/` | React + Tailwind + shadcn artifact scaffold and bundling for frontend-engineer. |
 | `skills/webapp-testing/` | `~/.cursor/skills/webapp-testing/` | Playwright-based webapp testing toolkit for frontend-engineer. |

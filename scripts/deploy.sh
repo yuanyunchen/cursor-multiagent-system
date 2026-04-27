@@ -19,6 +19,7 @@ SKILLS_DIR="$PROJECT_ROOT/skills"
 CURSOR_COMMANDS="$HOME/.cursor/commands"
 CURSOR_AGENTS="$HOME/.cursor/agents"
 CURSOR_SKILLS="$HOME/.cursor/skills"
+LEGACY_SKILLS=("report-builder")
 if [ ! -d "$CORE_DIR" ]; then
     echo "ERROR: core/ directory not found at $CORE_DIR"
     exit 1
@@ -52,6 +53,12 @@ SKILL_COUNT=0
 if [ -d "$SKILLS_DIR" ]; then
     echo ""
     echo "[skills]"
+    for legacy in "${LEGACY_SKILLS[@]}"; do
+        if [ ! -d "$SKILLS_DIR/$legacy" ] && [ -d "$CURSOR_SKILLS/$legacy" ]; then
+            rm -rf "$CURSOR_SKILLS/$legacy"
+            echo "  removed legacy skill $CURSOR_SKILLS/$legacy"
+        fi
+    done
     for skill_dir in "$SKILLS_DIR"/*/; do
         [ -d "$skill_dir" ] || continue
         SKILL_NAME=$(basename "$skill_dir")

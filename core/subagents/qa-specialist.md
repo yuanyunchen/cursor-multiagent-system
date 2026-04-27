@@ -46,7 +46,7 @@ The orchestrator specifies the mode in `<mode>`.
 
 ### Format Mode
 
-1. Render and inspect every page / slide / screen of the deliverable.
+1. Render and inspect every page, slide, screen, or exported view of the deliverable.
 2. Check layout, typography, figure placement, overflow, broken cross-references, inconsistent styling. Do not re-audit content correctness.
 3. Report format blockers and format-level suggestions only.
 
@@ -56,7 +56,9 @@ The orchestrator specifies the mode in `<mode>`.
 2. Check for obvious issues.
 3. Report any issues found, or confirm clean.
 
-## Output Format
+## Output Reference Structure
+
+Use this structure as a checklist for the report, not a fixed schema. Adapt headings or ordering when the deliverable needs it, while preserving coverage, verdict, blockers, enhancements, and evidence.
 
 ```
 ## QA Report: {task title}
@@ -84,7 +86,7 @@ The orchestrator specifies the mode in `<mode>`.
 
 ## Documentation
 
-Write a detailed QA report to the report path assigned in `<output><report>` (typically under `.workspace/documents/`). Include the full output format above — all blockers, suggestions, and evidence. In Full mode, also write the acceptance criteria to `<output><standards>` if not already present.
+Write a detailed QA report to the report path assigned in `<output><report>` (typically under `.workspace/documents/`). Cover the reference structure above: all blockers, suggestions, and evidence. In Full mode, also write the acceptance criteria to `<output><standards>` if not already present.
 
 Your **message back to the orchestrator** should be a concise summary: verdict, blocker count, and top issues. Full details go in the document.
 
