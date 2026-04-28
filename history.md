@@ -1,5 +1,29 @@
 # Version History
 
+## v2.6.5 (2026-04-28)
+
+Back-fill missing version entries in `history.md` so every version listed in `iterations/README.md` (and every user-curated archive folder) has a narrative entry. Internal-only documentation refactor — no agent capability or workflow change.
+
+### Changes
+
+- **`history.md` v1.0 entry** added — user-curated archive (no commit mapping). Describes the pre-formal-versioning prototype state captured into `iterations/v1.0/files/`; reconstructed from the earliest tracked commit `010045c` and archive contents.
+- **`history.md` v1.1 entry** added — user-curated archive. Documents the first iteration cycle on the v1 prototype: end-to-end run on `cv2-homework3` that produced the project's first reflection, code review, human feedback, problems, and requirements artifacts (all preserved under `iterations/v1.1/`).
+- **`history.md` v1.2 entry** added — reconstructed from commit `7af8efc` body (model selection simplification, workspace overhaul, quality pipeline reorder, deploy script `--archive` flag, honest-assessment summary rule). The original commit predates the v2.1.2 commit protocol that made history-entry updates mandatory; this entry is back-filled from the commit message.
+
+### Rationale
+
+Three versions had archive folders or commits but no narrative entry, breaking the "every version is self-describing" property that `iterations/README.md` and the per-version archive policy assume. Internal-only — no change to agent capabilities or workflow visible at runtime — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `history.md` (this entry plus v1.0, v1.1, v1.2 back-fills)
+- `iterations/README.md` (v2.6.5 row added; gitignored)
+
+### Tested On
+
+- `./scripts/deploy.sh --archive v2.6.5` — all five archive items written.
+- `grep "^## v" history.md` confirms entries for all 22 versions in `iterations/README.md` plus the three user-curated v1.0 / v1.1 / v1.5 archives.
+
 ## v2.6.4 (2026-04-28)
 
 Per-version archive scope expanded to include `llm.md` and `README.md`. Every `iterations/v<N>/files/` snapshot now reconstructs the workflow rules and public-facing docs alongside the source dirs. Internal-only refactor of the archive policy — no agent capability change.
@@ -163,6 +187,38 @@ New `frontend-engineer` subagent; workflow integration of design + build + test 
 - IDE lint check on modified markdown files (no linter errors)
 - `deploy.sh` dry-run via actual deploy: 1 command + 7 subagents + 8 skills synced, including the 4 newly-tracked frontend skills
 
+## v1.0 (2026-03-10) — user-curated archive, no commit mapping
+
+Pre-formal-versioning prototype state. Captured into `iterations/v1.0/files/` by hand before the version log existed; the `iterations/README.md` "User-curated archives" section is the authoritative note. Reconstructed here from the earliest tracked commit `010045c` (init: General Coding Agent system) and the v1.0 archive contents.
+
+### Archive contents (`iterations/v1.0/files/core/`)
+
+- `agent.md` — first orchestrator definition.
+- `subagents/` — initial 6 subagents: `executor`, `designer`, `debugger`, `qa-specialist`, `verifier`, `file-explorer`.
+
+### Notes
+
+- Predates `llm.md` (added later in commit `5c3f4ce`) and the `history.md` log itself (introduced with v1, commit `5525320`).
+- No git commit corresponds 1:1 to this archive snapshot — it is the user-saved state at some point during the early prototype phase. Treat as historical reference only; not reconstructible from a single SHA.
+
+## v1.1 (2026-03-10) — user-curated archive, no commit mapping
+
+First iteration cycle on the v1 prototype: the `cv2-homework3` task was run end-to-end, producing the project's first reflection / code review / human feedback / problems / requirements artifacts. Captured by hand under `iterations/v1.1/`; no matching git commit (predates the formal commit protocol).
+
+### Archive contents (`iterations/v1.1/`)
+
+- `files/core/` — agent definitions at this stage (still 6 subagents, pre-`llm.md`).
+- `cv2-homework3_self_reflection.md` — first end-to-end self-reflection on a real task.
+- `code_review.md` — first code review of `general-coding-agent v1`.
+- `human_feedback.md` — first user observations from runs.
+- `problems.md` — first consolidated problem list (sourced from the three artifacts above).
+- `requirements/` — early requirements drafts: `cost aware and model selection.md`, `plann & reflect & file system.md`.
+
+### Notes
+
+- These artifacts seeded the design pressure that led to v1.2 (model selection simplification, workspace overhaul, quality pipeline reorder) and v1.5 (orchestrator never reads code, report-writer renaming, verifier redesign).
+- Like v1.0, no git SHA represents this snapshot exactly; the file system is the authoritative record.
+
 ## v1 (2026-03-10)
 
 Initial release of the multi-agent orchestration system for Cursor IDE.
@@ -209,6 +265,36 @@ Initial release of the multi-agent orchestration system for Cursor IDE.
 ### Tested On
 
 - CV2 Homework 3: Structure from Motion pipeline + PDF report (L-size task)
+
+## v1.2 (2026-03-12)
+
+Major simplification and refinement (commit `7af8efc`). Reconstructed from commit message body — entry was missing from the original log.
+
+### Changes
+
+- **Simplify model selection to fast / inherit** (Cursor Task tool constraint). Removed the multi-tier model selection that v1 originally had.
+- **Workspace overhaul.** Removed `dispatches/`, added `documents/`, replaced `analysis/` with `standards/`. Set the directory structure that later versions iterate on.
+- **Reorder quality pipeline** to Verifier → Debug → QA → Designer (from v1's QA → Debug → Verify → re-QA loop).
+- **Execute–verify–QA loop with three gate levels per sub-module.** First explicit per-module gating model.
+- **Verifier may fix obvious issues**; all QC agents do holistic review (not pure checklist tickers anymore).
+- **Principle-based task splitting** — Rule 3 rewritten away from S/M/L sizing toward principle-driven decomposition.
+- **Autonomous execution** — orchestrator no longer requires user confirmation for plans before executing.
+- **Output containment, scope isolation, delegation autonomy** — three new rules on what the orchestrator does and does not do.
+- **Designer may trim / rephrase for layout conventions** (limited content edits permitted in service of formatting).
+- **Deploy script `--archive` flag** introduced; `current/`-first versioning workflow established.
+- **Honest assessment in delivery summary** — first formalization of the "do not hide unresolved issues" rule that later evolves into v2.4's mandatory bulleted summary.
+
+### Files Modified
+
+- `core/agent.md` — major rewrite (model selection, rules, workflow).
+- `core/subagents/*.md` — per-subagent updates aligned with the new pipeline order and behaviors.
+- `scripts/deploy.sh` — `--archive` flag added.
+- `llm.md` — `current/`-first workflow documentation.
+- `history.md` — back-filled in this entry (commit `7af8efc` did not include a v1.2 history entry; rule was not yet established).
+
+### Note: back-filled
+
+Commit `7af8efc` predates the v2.1.2 commit protocol (which made `history.md` updates mandatory). This entry is reconstructed from the commit message body; it is not a contemporaneous log.
 
 ## v1.3 (2026-03-12)
 
