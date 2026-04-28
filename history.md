@@ -1,5 +1,30 @@
 # Version History
 
+## v2.6.6 (2026-04-28)
+
+Apply `write-agent-file` skill review to `llm.md`: fix two stale archive-scope statements and dedup one description block. Internal-only documentation refactor — no agent capability or workflow change.
+
+### Changes
+
+- **L130 (commit protocol Step 4)** — archive description was still listing the pre-v2.6.4 scope (`core`, `skills`, `scripts` only). Updated to enumerate all five archived items (`core/`, `skills/`, `scripts/`, `llm.md`, `README.md`) and cross-reference the "Per-version archive" section for the layout.
+- **L15 (workspace tree comment)** — `scripts/deploy.sh` comment was ambiguous about sync-vs-archive scope. Rewritten as: "Deploys core/+skills/ to ~/.cursor/; --archive [<v>] snapshots all source state to iterations/v<N>/files/" — making clear that sync targets two dirs while archive captures everything.
+- **Phase 3 (Version Transition)** — full prose duplicating commit protocol Step 4 collapsed into a one-line reference: "Run the deploy step from the commit protocol above (`./scripts/deploy.sh --archive v<N>`) to populate `iterations/v<N>/files/`. Diff to verify deployed files match source." Single source of truth for the deploy command now lives in Step 4.
+
+### Rationale
+
+After v2.6.4 expanded the archive scope to include `llm.md` and `README.md`, two locations in `llm.md` continued to describe the old three-dir scope, creating drift between the workflow rules and the actual `deploy.sh` behavior. Internal-only — no change to agent capabilities or workspace conventions visible at runtime — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `llm.md`
+- `history.md` (this entry)
+- `iterations/README.md` (v2.6.6 row added; gitignored)
+
+### Tested On
+
+- `./scripts/deploy.sh --archive v2.6.6` — all five items written.
+- Cross-checked all `llm.md` mentions of the archive scope; only the three statements above were stale, all now consistent with the canonical "Per-version archive" section (L88-95).
+
 ## v2.6.5 (2026-04-28)
 
 Back-fill missing version entries in `history.md` so every version listed in `iterations/README.md` (and every user-curated archive folder) has a narrative entry. Internal-only documentation refactor — no agent capability or workflow change.

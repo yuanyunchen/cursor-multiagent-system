@@ -12,7 +12,7 @@ cursor-multiagent-system/
 │   ├── agent.md           #   Orchestrator -> ~/.cursor/commands/
 │   └── subagents/*.md     #   Subagents    -> ~/.cursor/agents/
 ├── skills/<name>/         # Skills         -> ~/.cursor/skills/<name>/
-├── scripts/deploy.sh      # Sync core/ + skills/ to Cursor; --archive [<v>] snapshots core/+skills/+scripts/+llm.md+README.md
+├── scripts/deploy.sh      # Deploys core/+skills/ to ~/.cursor/; --archive [<v>] snapshots all source state to iterations/v<N>/files/
 ├── tests/<test-name>/     # prompt.txt + input files
 ├── iterations/
 │   ├── README.md          # Version -> commit-SHA index
@@ -127,7 +127,7 @@ Iteration-level artifacts (specs, reviews, reflections, plans) accumulate here d
    ```bash
    ./scripts/deploy.sh --archive v<N>
    ```
-   Syncs `core/`, `skills/`, `scripts/` to `~/.cursor/` AND snapshots them to `iterations/v<N>/files/{core,skills,scripts}/`. The runtime, the repo, and the per-version archive must all reflect the same source state.
+   Deploys `core/` + `skills/` to `~/.cursor/` AND snapshots all source state — `core/`, `skills/`, `scripts/`, `llm.md`, `README.md` — to `iterations/v<N>/files/` (see "Per-version archive" above for the layout). The runtime, the repo, and the per-version archive must all reflect the same source state.
 5. **Update `iterations/README.md`** with a row for `v<N>` (commit SHA fills in once committed; either pre-fill the row and amend the SHA after, or update in a follow-up — both are acceptable).
 6. **Commit + push:**
    ```bash
@@ -145,13 +145,7 @@ Triggered by "commit to next version" (or similar). Use the user-specified versi
 
 **Phase 2 — Consistency check.** Run the cross-file consistency check from Agent Design Principle 5. Report any issues before proceeding.
 
-**Phase 3 — Deploy and archive to the new version.**
-
-```bash
-./scripts/deploy.sh --archive v<N>
-```
-
-Deploys `core/`, `skills/`, `scripts/` to Cursor and snapshots all three to `iterations/v<N>/files/{core,skills,scripts}/`. Diff to verify deployed files match source.
+**Phase 3 — Deploy and archive.** Run the deploy step from the commit protocol above (`./scripts/deploy.sh --archive v<N>`) to populate `iterations/v<N>/files/`. Diff to verify deployed files match source.
 
 **Phase 4 — Move in-progress artifacts into the new version.**
 
