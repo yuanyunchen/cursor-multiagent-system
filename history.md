@@ -1,5 +1,38 @@
 # Version History
 
+## v2.6.3 (2026-04-28)
+
+Apply `write-agent-file` skill review to `core/agent.md`: clarify Rule 2 user-interaction semantics, surface Rule 1 vs Rule 2 conflict, dedup repeated information, slim `<team>` table to pure routing, and tighten layout. Internal-only refactor — no capability or workflow change.
+
+### Changes
+
+- **Rule 2 rewrite** — recast as three-part user-interaction contract: self-solve first (debug / retry / dispatch / redesign), escalate only when the user must intervene, never silently exit early or substitute deviating results. Replaces the previous prose that mixed value framing with action.
+- **Rule 1 clarification** — appended one sentence resolving the Rule 1 (never read code) vs Rule 2 (self-solve) tension: when self-solving requires looking at code or runtime state, dispatch `explore` or `verifier` rather than reading directly.
+- **`<parameters>` decision rule** — added single-line decision rule for the composer-2 vs inherit choice, removing the gray zone between Rule 4 (quality-first) and the cost default.
+- **`<team>` table slimmed** — dropped per-row internal-loop / QA-evidence / output-path detail and Writes notes; retained agent + type + 1–2-sentence use case + mode names. Footer states the internal-QA-satisfies-module-close rule once and points to `<workspace>` Naming conventions for paths.
+- **Dedup pass** — single source of truth for: `brief.md` description (removed duplicate dispatch-norms reminder), `<task_format>` `<report>` field (now references Naming conventions), Step 4 hygiene prose (now "Run hygiene pass per Rule 8"), and the team-row Writes annotations.
+- **Cleanup** — removed Rule 4 value-as-rule preamble ("Bar = strong senior-engineer solution"), removed `<summary_format>` redundant trailing instruction, simplified Step 1.1 prose by referencing `<workspace>`. Operational priorities under Rule 1 converted to numbered list.
+- **Grammar fixes** — Step 3.2 sentence fragment ("add `verifier` for code-heavy core ones") capitalized and clarified to "Add `verifier` for code-heavy core modules"; Step 5 first bullet trailing period restored.
+
+### Rationale
+
+This is an **internal-only refactor** — no change to agent capabilities, dispatch protocol, workspace layout, or public-facing docs — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `core/agent.md`
+- `history.md` (this entry — back-filled, see note below)
+- `iterations/README.md` (v2.6.3 row added; not in git per `.gitignore`)
+
+### Tested On
+
+- Whole-file consistency check per `llm.md` Agent Design Principle 5: `<role>` ↔ `<rules>` ↔ `<workflow>` mutually consistent; `<team>` rows match each subagent's YAML; `<task_format>` field usage unchanged; Naming conventions table unchanged.
+- `./scripts/deploy.sh --archive v2.6.3` — deployed to `~/.cursor/` and snapshotted to `iterations/v2.6.3/files/{core,skills,scripts}/`.
+
+### Note: back-filled
+
+The agent.md changes themselves landed in commit `68a52d4` (`refactor(agent.md): apply write-agent-file skill review`) without a `v<N>:` tag and without a corresponding `history.md` entry. This `v2.6.3` entry back-fills the missing protocol artifacts (history entry, version archive, `iterations/README.md` row mapping `v2.6.3 → 68a52d4`). Per `llm.md` commit protocol, past entries are never modified; the back-fill itself is committed in a follow-up commit.
+
 ## v2.6.2 (2026-04-27)
 
 Per-version archive policy clarified; `deploy.sh --archive` accepts a version target so every commit produces a reconstructible snapshot.
