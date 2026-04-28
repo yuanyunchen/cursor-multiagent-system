@@ -7,9 +7,12 @@
 #   core/subagents/*.md      -> ~/.cursor/agents/*.md
 #   skills/*                 -> ~/.cursor/skills/*
 #
-# Usage:   ./scripts/deploy.sh [--archive]
-#   --archive: also snapshot core/, skills/, and scripts/ into
-#              iterations/current/files/{core,skills,scripts}/
+# Usage:   ./scripts/deploy.sh [--archive [<version>]]
+#   --archive            snapshot core/, skills/, scripts/ into
+#                        iterations/current/files/{core,skills,scripts}/
+#   --archive <version>  same snapshot, written to
+#                        iterations/<version>/files/{core,skills,scripts}/
+#                        (use on every commit so the version is reconstructible)
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -72,17 +75,20 @@ fi
 
 # --- Archive (optional) ---
 if [ "$1" = "--archive" ]; then
-    ARCHIVE_ROOT="$PROJECT_ROOT/iterations/current/files"
+    ARCHIVE_VERSION="${2:-current}"
+    ARCHIVE_ROOT="$PROJECT_ROOT/iterations/$ARCHIVE_VERSION/files"
     mkdir -p "$ARCHIVE_ROOT"
     echo ""
-    echo "[archive]"
+    echo "[archive] target: iterations/$ARCHIVE_VERSION/files/"
     for src in "core" "skills" "scripts"; do
         SRC_PATH="$PROJECT_ROOT/$src"
         [ -d "$SRC_PATH" ] || continue
         DST_PATH="$ARCHIVE_ROOT/$src"
         mkdir -p "$DST_PATH"
-        rsync -a --delete "$SRC_PATH/" "$DST_PATH/"
-        echo "  $src/ -> iterations/current/files/$src/"
+        rsync -a --delete \
+            --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
+            "$SRC_PATH/" "$DST_PATH/"
+        echo "  $src/ -> iterations/$ARCHIVE_VERSION/files/$src/"
     done
 fi
 

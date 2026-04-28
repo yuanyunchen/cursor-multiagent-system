@@ -12,15 +12,18 @@ cursor-multiagent-system/
 │   ├── agent.md           #   Orchestrator -> ~/.cursor/commands/
 │   └── subagents/*.md     #   Subagents    -> ~/.cursor/agents/
 ├── skills/<name>/         # Skills         -> ~/.cursor/skills/<name>/
-├── scripts/deploy.sh      # Sync core/ + skills/ to Cursor; --archive snapshots
+├── scripts/deploy.sh      # Sync core/ + skills/ + scripts/ to Cursor; --archive [<v>] snapshots
 ├── tests/<test-name>/     # prompt.txt + input files
 ├── iterations/
-│   ├── current/           # Active iteration (renamed to v<N>/ on transition)
+│   ├── README.md          # Version -> commit-SHA index
+│   ├── current/           # Active iteration (in-progress artifacts)
 │   │   ├── requirements/<feature>.md
 │   │   ├── problems.md, code_review.md, human_feedback.md
 │   │   ├── <test-name>_self_reflection.md, <test-name>_plan.md
-│   │   └── files/{core,skills,scripts}/   # Full versioned snapshot
-│   └── v<N>/              # Past iterations
+│   │   ├── archive/<date>_<topic>/        # Ad-hoc local-only snapshots (e.g., pre-refactor)
+│   │   └── files/{core,skills,scripts}/   # Working snapshot (mirrors latest source state)
+│   └── v<N>/              # Per-version archive
+│       └── files/{core,skills,scripts}/   # Frozen snapshot of source-of-truth dirs at that commit
 ├── results/current/<test-name>/   # Renamed to v<N>/ on transition
 ├── current -> iterations/current  # Symlink
 ├── history.md             # Append-only version log
@@ -78,15 +81,24 @@ Apply when modifying anything in `core/` or `skills/`.
 
 ## Iterations
 
-Per-version workspace under `iterations/v<N>/`:
+`iterations/` holds development artifacts and per-version source snapshots. **Not tracked in git** (kept local only); GitHub history is the public source of truth.
 
-- **`requirements/<feature>.md`** — agreed-upon spec, one file per feature; reflects final design.
+### Per-version archive — `iterations/v<N>/files/`
+
+Every committed version (including patches) gets a frozen snapshot of `core/`, `skills/`, `scripts/` under `iterations/v<N>/files/`. Produced by `./scripts/deploy.sh --archive v<N>` during the commit protocol. This makes any past version reconstructible without reaching into git history. `iterations/README.md` maintains the version → commit-SHA mapping.
+
+### In-progress artifacts — `iterations/current/`
+
+Iteration-level artifacts (specs, reviews, reflections, plans) accumulate here during a minor version's lifecycle and are moved to `iterations/v<N>/` at version transition (Phase 4):
+
+- **`requirements/<feature>.md`** — agreed spec for each feature in this version; reflects final design.
 - **`problems.md`** — consolidated issues, severity P0–P3.
 - **`code_review.md`** — review findings on agent definitions.
 - **`human_feedback.md`** — user observations from runs.
 - **`<test>_self_reflection.md`** — actual vs. expected execution: flow table, issues (severity / rule / impact), root cause, proposed fixes referencing concrete sections in `core/`.
 - **`<test>_plan.md`** — translates reflection into edits: issues to address (linked to reflection IDs), per-file changes (file, section, current, proposed, rationale), test plan.
-- **`files/{core,skills,scripts}/`** — full snapshot of source-of-truth dirs at this version (produced by `deploy.sh --archive`). Every version transition must produce a complete snapshot so any past version can be reconstructed.
+- **`files/`** — working snapshot mirroring latest source state. Overwritten on every commit; not authoritative — `v<N>/files/` is.
+- **`archive/<date>_<topic>/`** — ad-hoc local snapshots when you want to keep a copy of state at some moment that doesn't correspond to a commit (e.g., pre-refactor reference). Optional; not part of the commit protocol.
 
 ---
 
@@ -99,11 +111,22 @@ Per-version workspace under `iterations/v<N>/`:
 - Minor (v2.1 → v2.2): new features, workflow / role redesign. Use the user-specified version when given; otherwise infer from scope.
 - Patch (v2.1.1 → v2.1.2): every commit auto-increments; look up latest in `history.md`.
 
-**Every commit:**
-1. `./scripts/deploy.sh` (sync to Cursor before committing — runtime must match source).
-2. Append entry to `history.md` (date, summary, changes, files).
-3. `git commit -m "v<N>: <summary>"` and `git push origin main`.
-4. Report old → new version with change summary.
+**Every commit (including patches):**
+
+1. **Determine version.** Look up latest in `history.md` and bump per the scheme above (or use the user-specified version when given).
+2. **Update public docs if user-facing behavior changed.** When the change touches capabilities, workflow, built-in / subagent / skill names, or workspace conventions, update `README.md` in the same edit set. Internal-only refactors (prompt density, dedup, comment cleanup) do not require a `README.md` update; document this rationale in the `history.md` entry.
+3. **Append `history.md` entry** for `v<N>` (date, one-line summary, bullet list of changes, files modified, what was tested). Never modify past entries; if a previous commit missed an entry, back-fill it in this commit and note "back-filled" in the new entry.
+4. **Deploy + archive in one step:**
+   ```bash
+   ./scripts/deploy.sh --archive v<N>
+   ```
+   Syncs `core/`, `skills/`, `scripts/` to `~/.cursor/` AND snapshots them to `iterations/v<N>/files/{core,skills,scripts}/`. The runtime, the repo, and the per-version archive must all reflect the same source state.
+5. **Update `iterations/README.md`** with a row for `v<N>` (commit SHA fills in once committed; either pre-fill the row and amend the SHA after, or update in a follow-up — both are acceptable).
+6. **Commit + push:**
+   ```bash
+   git add -A && git commit -m "v<N>: <one-line summary>" && git push origin main
+   ```
+7. **Report to the user:** old → new version, one-line change summary.
 
 ---
 
@@ -115,25 +138,33 @@ Triggered by "commit to next version" (or similar). Use the user-specified versi
 
 **Phase 2 — Consistency check.** Run the cross-file consistency check from Agent Design Principle 5. Report any issues before proceeding.
 
-**Phase 3 — Deploy and archive.**
+**Phase 3 — Deploy and archive to the new version.**
 
 ```bash
-./scripts/deploy.sh --archive
+./scripts/deploy.sh --archive v<N>
 ```
 
-Deploys `core/`, `skills/`, `scripts/` to Cursor and snapshots all three into `iterations/current/files/{core,skills,scripts}/`. Diff to verify deployed files match source.
+Deploys `core/`, `skills/`, `scripts/` to Cursor and snapshots all three to `iterations/v<N>/files/{core,skills,scripts}/`. Diff to verify deployed files match source.
 
-**Phase 4 — Roll over.**
+**Phase 4 — Move in-progress artifacts into the new version.**
 
 ```bash
-mv iterations/current iterations/v<N>
-mv results/current   results/v<N>
-mkdir -p iterations/current/requirements iterations/current/files
+# Move iteration artifacts (requirements/, problems.md, reflections, plans, ad-hoc archives) into v<N>/
+# files/ already populated by Phase 3 — preserve it.
+for f in iterations/current/*; do
+  name=$(basename "$f")
+  [ "$name" = "files" ] && continue
+  mv "$f" "iterations/v<N>/$name"
+done
+
+mv results/current results/v<N>
+
+mkdir -p iterations/current/requirements
 ```
 
-The `current -> iterations/current` symlink is unchanged. Append a version entry to `history.md` (never modify past entries): what changed, why, files modified, validating tests.
+Append a version entry to `history.md` (never modify past entries): what changed, why, files modified, validating tests. Add the new row to `iterations/README.md`.
 
-**Phase 5 — Commit (if requested).** Follow the commit protocol above (deploy → history → commit → push).
+**Phase 5 — Commit (if requested).** Follow the commit protocol above (`history.md` already updated; run deploy → commit → push).
 
 ---
 

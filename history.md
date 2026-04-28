@@ -1,5 +1,32 @@
 # Version History
 
+## v2.6.2 (2026-04-27)
+
+Per-version archive policy clarified; `deploy.sh --archive` accepts a version target so every commit produces a reconstructible snapshot.
+
+### Changes
+
+- **`scripts/deploy.sh`** — `--archive` now accepts an optional `<version>` argument. With no arg, snapshots to `iterations/current/files/` (old behavior). With a version, snapshots to `iterations/<version>/files/{core,skills,scripts}/`. Archive now also excludes `__pycache__`, `*.pyc`, `.DS_Store` so snapshots stay clean.
+- **`llm.md` commit protocol** — rewritten as a 7-step checklist that makes per-commit archival mandatory: every commit (including patches) runs `./scripts/deploy.sh --archive v<N>` so the version is reconstructible from `iterations/v<N>/files/` without reaching into git history. Adds explicit guidance on when to update `README.md` (user-facing capability change) vs skip it (internal refactor — record rationale in `history.md`). Adds a `history.md` back-fill rule for missed past commits.
+- **`llm.md` "Iterations" section** — split into "Per-version archive" (frozen `v<N>/files/`) and "In-progress artifacts" (working `current/`). Documents the new ad-hoc `current/archive/<date>_<topic>/` slot for local-only snapshots that don't correspond to a commit.
+- **`llm.md` Version Transition Phase 4** — updated to preserve the already-populated `iterations/v<N>/files/` from Phase 3 instead of overwriting it; only non-`files/` artifacts move from `current/` to `v<N>/`.
+- **`iterations/README.md`** — version → commit-SHA index now explicitly part of the commit protocol (Step 5).
+
+### Rationale
+
+This is an **internal-only refactor** of the development workflow — no change to agent capabilities, runtime behavior, or public-facing docs — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `scripts/deploy.sh`
+- `llm.md`
+- `history.md` (this entry)
+- `iterations/README.md` (v2.6.2 row added; not in git per `.gitignore`)
+
+### Tested On
+
+- `./scripts/deploy.sh --archive v2.6.1` — wrote correctly to `iterations/v2.6.1/files/{core,skills,scripts}/`; verified diff against `current/files/` is exactly `scripts/deploy.sh` (expected — v2.6.1 has the old script, current has the new one).
+
 ## v2.6.1 (2026-04-27)
 
 Prompt density pass on `core/agent.md` and `llm.md`; report-prompt optimization for `report-writer` + `write-report` skill (per `iterations/current/requirements/report-prompt-optimization.md`); expanded snapshot scope for `deploy.sh --archive`.
