@@ -1,5 +1,47 @@
 # Version History
 
+## v2.6.1 (2026-04-27)
+
+Prompt density pass on `core/agent.md` and `llm.md`; report-prompt optimization for `report-writer` + `write-report` skill (per `iterations/current/requirements/report-prompt-optimization.md`); expanded snapshot scope for `deploy.sh --archive`.
+
+### Changes
+
+- **`core/agent.md` density pass (390 → 271 lines).** Folded `<team>` I/O field listings (covered by `<task_format>`); removed the trailing per-agent field bullet list under `<task_format>`; replaced workflow Step 3's "step 0 Re-ground" sub-block with a Rule 7 reference; collapsed Step 5 producer-specific bullets that restated `<team>`; replaced the standalone "producer evidence cleanup" paragraph with a Rule 8 reference; trimmed Rule 1 / Rule 5 / Rule 6 / Rule 8 sub-bullets that duplicated `<role>`, `<task_format>`, `<workspace>`, and workflow content. All features, dispatch modes, conditional paths, and rule sub-bullets preserved.
+- **`llm.md` density pass (290 → 144 lines).** Removed the `Core File Roles` table (each subagent / skill owns its own description as the single source of truth); merged the cross-file consistency checklist that lived in both Principle 2 and Phase 2; folded the `Versioning` commit-protocol with Phase 5; pruned tone-only sentences.
+- **Versioned snapshot scope expanded.** `scripts/deploy.sh --archive` now writes `core/`, `skills/`, and `scripts/` snapshots to `iterations/current/files/{core,skills,scripts}/` (previously only `core/`). `llm.md` documents the new layout under "Iterations" and Phase 3.
+- **Report prompt optimization.** `core/subagents/report-writer.md` (266 → ~135 lines) and `skills/write-report/SKILL.md` (~200 → ~135 lines) rewritten per the boundary defined in `iterations/current/requirements/report-prompt-optimization.md`: skill owns format/tooling layer, `report-writer.md` owns content/orchestration layer; no overlapping content.
+
+### Files Modified
+
+- `core/agent.md`
+- `core/subagents/report-writer.md`
+- `llm.md`
+- `scripts/deploy.sh`
+- `skills/write-report/SKILL.md`
+- `history.md` (v2.6 back-fill + v2.6.1 entry)
+
+### Tested On
+
+- Cross-file consistency: subagent YAML descriptions still align with `<team>` rows; XML tag set unchanged; rule cross-references (Rule 4 / 7 / 8) still valid.
+- `deploy.sh` dry-run via actual deploy (1 command + 7 subagents + 8 skills synced).
+
+## v2.6 (2026-04-27)
+
+Redesign of report production workflow.
+
+### Changes
+
+- **Replace `report-builder` with `write-report` skill** and local LaTeX starters (templates moved into the project).
+- **Clarify `report-writer` ownership**, context feedback (`NEEDS_MORE_CONTEXT` handshake), and QA cleanup contract.
+- **Route HTML reports and web deliverables through `frontend-engineer`** (report-writer scope tightened to LaTeX PDF only).
+- **Soften report and QA structures into flexible reference formats** rather than fixed schemas.
+
+### Files Modified
+
+- `README.md`, `core/agent.md`, `core/subagents/qa-specialist.md`, `core/subagents/report-writer.md`, `llm.md`, `scripts/deploy.sh`, `skills/write-report/` (new skill replacing `skills/report-builder/`)
+
+(Back-filled retroactively in v2.6.1 — the v2.6 commit itself did not include a `history.md` entry.)
+
 ## v2.5 (2026-04-24)
 
 New `frontend-engineer` subagent; workflow integration of design + build + test for web frontends; removal of standalone Format QA step.

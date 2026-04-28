@@ -8,7 +8,8 @@
 #   skills/*                 -> ~/.cursor/skills/*
 #
 # Usage:   ./scripts/deploy.sh [--archive]
-#   --archive: also snapshot core/ into iterations/current/files/core/
+#   --archive: also snapshot core/, skills/, and scripts/ into
+#              iterations/current/files/{core,skills,scripts}/
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -71,11 +72,18 @@ fi
 
 # --- Archive (optional) ---
 if [ "$1" = "--archive" ]; then
-    ARCHIVE_DIR="$PROJECT_ROOT/iterations/current/files/core"
-    mkdir -p "$ARCHIVE_DIR"
-    rsync -a --delete "$CORE_DIR/" "$ARCHIVE_DIR/"
+    ARCHIVE_ROOT="$PROJECT_ROOT/iterations/current/files"
+    mkdir -p "$ARCHIVE_ROOT"
     echo ""
-    echo "[archive] core/ -> iterations/current/files/core/"
+    echo "[archive]"
+    for src in "core" "skills" "scripts"; do
+        SRC_PATH="$PROJECT_ROOT/$src"
+        [ -d "$SRC_PATH" ] || continue
+        DST_PATH="$ARCHIVE_ROOT/$src"
+        mkdir -p "$DST_PATH"
+        rsync -a --delete "$SRC_PATH/" "$DST_PATH/"
+        echo "  $src/ -> iterations/current/files/$src/"
+    done
 fi
 
 echo ""
