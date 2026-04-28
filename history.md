@@ -1,5 +1,32 @@
 # Version History
 
+## v2.6.4 (2026-04-28)
+
+Per-version archive scope expanded to include `llm.md` and `README.md`. Every `iterations/v<N>/files/` snapshot now reconstructs the workflow rules and public-facing docs alongside the source dirs. Internal-only refactor of the archive policy — no agent capability change.
+
+### Changes
+
+- **`scripts/deploy.sh`** — `--archive` step now copies `llm.md` and `README.md` into `iterations/<version>/files/` alongside `core/`, `skills/`, `scripts/`. Header comment updated to document the new layout.
+- **`llm.md`** — Workspace structure tree updated (per-version `files/` now lists all five items). "Per-version archive" section rewritten to enumerate the archive contents and explain why workspace docs are included (workflow rules and public-facing docs reconstructible alongside code). One-line description in the workspace tree updated to match.
+- **Historical back-fill** — `iterations/v<N>/files/llm.md` and `README.md` populated for every committed version mapped in `iterations/README.md` (v1 through v2.6.3). Source: `git show <sha>:llm.md` / `git show <sha>:README.md` for the commit recorded in the version → commit-SHA index. v1 had no `llm.md` (added in v1.2), so v1 only gets `README.md`. The user-curated archives `v1.0/`, `v1.1/`, `v1.5/` are intentionally untouched (no matching commit, per the existing `iterations/README.md` "User-curated archives" note).
+
+### Rationale
+
+Workflow rules (`llm.md`) and public-facing capability docs (`README.md`) evolve in lockstep with the agent definitions. Without them in the per-version archive, restoring `iterations/v<N>/files/` reconstructs only the runtime behavior, not the protocol that produced it. This is **internal-only** to the archive policy — no change to agent capabilities, dispatch protocol, or workspace conventions visible to a runtime task — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `scripts/deploy.sh`
+- `llm.md`
+- `history.md` (this entry)
+- `iterations/v<N>/files/llm.md` and `iterations/v<N>/files/README.md` for v1, v1.2, v1.3, v2, v2.1, v2.1.1, v2.1.2, v2.2, v2.3, v2.3.1, v2.4, v2.4.1, v2.4.2, v2.4.3, v2.5, v2.6, v2.6.1, v2.6.2, v2.6.3 (gitignored, local only)
+- `iterations/README.md` (v2.6.4 row added; gitignored)
+
+### Tested On
+
+- `./scripts/deploy.sh --archive v2.6.4` — all five items written to `iterations/v2.6.4/files/`: `core/`, `skills/`, `scripts/`, `llm.md`, `README.md`.
+- Back-fill loop verified: v1 correctly skipped `llm.md` (file did not exist at that commit) while writing `README.md`.
+
 ## v2.6.3 (2026-04-28)
 
 Apply `write-agent-file` skill review to `core/agent.md`: clarify Rule 2 user-interaction semantics, surface Rule 1 vs Rule 2 conflict, dedup repeated information, slim `<team>` table to pure routing, and tighten layout. Internal-only refactor — no capability or workflow change.

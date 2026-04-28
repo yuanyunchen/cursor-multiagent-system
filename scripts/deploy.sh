@@ -8,11 +8,12 @@
 #   skills/*                 -> ~/.cursor/skills/*
 #
 # Usage:   ./scripts/deploy.sh [--archive [<version>]]
-#   --archive            snapshot core/, skills/, scripts/ into
-#                        iterations/current/files/{core,skills,scripts}/
-#   --archive <version>  same snapshot, written to
-#                        iterations/<version>/files/{core,skills,scripts}/
+#   --archive            snapshot core/, skills/, scripts/, llm.md, README.md into
+#                        iterations/current/files/
+#   --archive <version>  same snapshot, written to iterations/<version>/files/
 #                        (use on every commit so the version is reconstructible)
+#
+# Archive layout: iterations/<version>/files/{core/, skills/, scripts/, llm.md, README.md}
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -89,6 +90,12 @@ if [ "$1" = "--archive" ]; then
             --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
             "$SRC_PATH/" "$DST_PATH/"
         echo "  $src/ -> iterations/$ARCHIVE_VERSION/files/$src/"
+    done
+    for doc in "llm.md" "README.md"; do
+        SRC_PATH="$PROJECT_ROOT/$doc"
+        [ -f "$SRC_PATH" ] || continue
+        cp "$SRC_PATH" "$ARCHIVE_ROOT/$doc"
+        echo "  $doc -> iterations/$ARCHIVE_VERSION/files/$doc"
     done
 fi
 

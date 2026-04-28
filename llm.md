@@ -12,7 +12,7 @@ cursor-multiagent-system/
 │   ├── agent.md           #   Orchestrator -> ~/.cursor/commands/
 │   └── subagents/*.md     #   Subagents    -> ~/.cursor/agents/
 ├── skills/<name>/         # Skills         -> ~/.cursor/skills/<name>/
-├── scripts/deploy.sh      # Sync core/ + skills/ + scripts/ to Cursor; --archive [<v>] snapshots
+├── scripts/deploy.sh      # Sync core/ + skills/ to Cursor; --archive [<v>] snapshots core/+skills/+scripts/+llm.md+README.md
 ├── tests/<test-name>/     # prompt.txt + input files
 ├── iterations/
 │   ├── README.md          # Version -> commit-SHA index
@@ -23,7 +23,9 @@ cursor-multiagent-system/
 │   │   ├── archive/<date>_<topic>/        # Ad-hoc local-only snapshots (e.g., pre-refactor)
 │   │   └── files/{core,skills,scripts}/   # Working snapshot (mirrors latest source state)
 │   └── v<N>/              # Per-version archive
-│       └── files/{core,skills,scripts}/   # Frozen snapshot of source-of-truth dirs at that commit
+│       └── files/         # Frozen snapshot of source-of-truth state at that commit
+│           ├── core/, skills/, scripts/   # source dirs
+│           └── llm.md, README.md          # workspace docs
 ├── results/current/<test-name>/   # Renamed to v<N>/ on transition
 ├── current -> iterations/current  # Symlink
 ├── history.md             # Append-only version log
@@ -85,7 +87,12 @@ Apply when modifying anything in `core/` or `skills/`.
 
 ### Per-version archive — `iterations/v<N>/files/`
 
-Every committed version (including patches) gets a frozen snapshot of `core/`, `skills/`, `scripts/` under `iterations/v<N>/files/`. Produced by `./scripts/deploy.sh --archive v<N>` during the commit protocol. This makes any past version reconstructible without reaching into git history. `iterations/README.md` maintains the version → commit-SHA mapping.
+Every committed version (including patches) gets a frozen snapshot under `iterations/v<N>/files/`:
+
+- `core/`, `skills/`, `scripts/` — source-of-truth dirs
+- `llm.md`, `README.md` — workspace docs (so workflow rules and public-facing docs are reconstructible alongside the code)
+
+Produced by `./scripts/deploy.sh --archive v<N>` during the commit protocol. This makes any past version fully reconstructible without reaching into git history. `iterations/README.md` maintains the version → commit-SHA mapping.
 
 ### In-progress artifacts — `iterations/current/`
 
