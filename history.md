@@ -1,5 +1,49 @@
 # Version History
 
+## Unreleased
+
+### 2026-04-28 — Apply `write-agent-file` skill review to all `core/subagents/*.md`
+
+Internal-only review pass: dedup duplicate report-structure sections, delete filler rules, fix Rule 6 cross-reference violations, drop hardcoded environment paths. No agent capability or workflow change — `README.md` intentionally not updated. Total: 642 → 595 lines (−47) across the seven subagent files.
+
+#### Changes
+
+- **`report-writer.md`** — description and body no longer name `frontend-engineer` for non-PDF deliverables (violated `agent.md` Rule 6 "subagents are independent modules"). Body now states scope and defers routing to the orchestrator.
+- **`frontend-engineer.md`** —
+  - Removed hardcoded fallback path `cursor-multiagent-system/results/current/deliverables/{name}/`; missing `<output_dir>` is now a Rule 9 blocker (orchestrator owns paths per `agent.md` Rule 6).
+  - Removed hardcoded macOS Chrome binary path (`/Applications/Google Chrome.app/...`) and the inline `chrome --headless` example; both delegated to the `webapp-testing` skill.
+  - Consolidated "design intentionality" repetition: folded former Rule 5 (AI-slop anti-patterns) into Rule 2; deleted former Rule 11 (no placeholders) and merged its content into Rule 1 ("ship-ready"). Renumbered remaining rules; fixed dangling "Rule 10" reference to "Rule 9".
+- **`executor.md`** — Option C consolidation:
+  - Former Rule 1 ("always seek the better solution") + Rule 3 ("minimal change when modifying existing code") merged into a single Rule 1 keyed to work type (existing code → smallest diff + match style; new modules → best architecture).
+  - **Pre-existing issues in touched code must now appear in the return message** — added explicit clause to Rule 1 and to the "message back to the orchestrator" paragraph. Out-of-scope issues spotted during work are reported, not fixed, and never silently dropped.
+  - Deleted Rule 5 ("Read before write") and Rule 7 ("No placeholders") as capable-agent defaults that change no behavior.
+  - De-named "verifier/QA" in the Documentation handoff text → "the next reviewer" (`agent.md` Rule 6 hygiene).
+- **`verifier.md`** — merged the duplicate "Output Format" and "Documentation" sections (had drifted: Documentation listed Scope / Requirements check / Overview, Output Format did not). Single canonical schema now embedded in Output Format.
+- **`qa-specialist.md`** — merged duplicate "Output Reference Structure" + "Documentation" sections; tightened role paragraph (removed redundant restatements of "never read code", which was repeated four times across role / Modes / Rule 1 / Rule 9); folded former Rule 5 ("Actually look at content") into Rule 4 ("Exhaustive, not sampled").
+- **`debugger.md`** — merged duplicate "Output Format" + "Documentation" sections; folded former Rule 6 ("Match style") into Rule 2 ("Minimal change"); deleted standalone Rule 5 ("No placeholders") and merged into the new Rule 5 ("No placeholders, no incomplete fixes"); description no longer points to "Verifier or QA Specialist" (Rule 6 violation), now refers generically to "a code review or QA pass".
+
+#### Rationale
+
+`agent.md` Rule 6 explicitly forbids subagent files from naming sibling subagents, but `report-writer.md` and `debugger.md` did so in their YAML descriptions, and `frontend-engineer.md` carried hardcoded absolute paths that violated "orchestrator owns layout, paths". Several files also had `Output Format` + `Documentation` sections describing the same report schema in different words — a textbook drift hazard per the `write-agent-file` skill's single-source-of-truth principle. The executor Rule 1 vs Rule 3 tension ("always seek the better solution" vs "minimal change") was a true principle conflict — Option C (one rule keyed to work type) resolves it without losing either intent, and the new return-message requirement closes the loophole where executors notice rot in existing code but never surface it.
+
+#### Files Modified
+
+- `core/subagents/debugger.md` (49 → 47 lines)
+- `core/subagents/executor.md` (40 → 36 lines)
+- `core/subagents/frontend-engineer.md` (175 → 167 lines)
+- `core/subagents/qa-specialist.md` (105 → 102 lines)
+- `core/subagents/report-writer.md` (82 → 82 lines, content edits only)
+- `core/subagents/verifier.md` (85 → 84 lines)
+- `history.md` (this entry)
+
+`core/subagents/file-extractor.md` and `core/agent.md` reviewed but not edited (no violations found / user deferred orchestrator sync).
+
+#### Tested On
+
+- `ReadLints` clean across all six modified files.
+- Cross-checked all rule-number references inside each file after renumbering — only one stale ref found (`frontend-engineer.md` "Rule 10") and fixed in the same pass.
+- Cross-checked subagent descriptions against the `<team>` table in `core/agent.md`: capabilities, mode names (`Full | Format | Lightweight` for qa-specialist, `Full | Polish` for frontend-engineer), and dual-use flagging all consistent.
+
 ## v2.6.7 (2026-04-28)
 
 Add a "log-only changes" sub-protocol to `llm.md` for accumulating small parallel-agent edits without bumping a version on every one.

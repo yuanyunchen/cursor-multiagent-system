@@ -31,22 +31,36 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 
 ## Output Format
 
+Write the verification report to the path in `<output><report>` (typically under `.workspace/documents/`). Focus on problems and gaps; do not elaborate on what passed.
+
 ```
 ## Verification: {task title}
 
 **Verdict:** PASS | FAIL
 
-### Fixed (minor issues resolved directly)
-- {what was fixed, file, line}
+### Scope
+- Files / module reviewed: {list}
+- Reviewed against: {requirements / acceptance criteria source}
+
+### Requirements check
+- {requirement} — met / not met — {brief evidence}
 - ...
-(If none: omit section.)
+(One line per requirement. This is the primary alignment check between implementation and spec.)
+
+### Overview
+- {key component} — {role, how it connects, where problems exist}
+- ...
+(Bullet points only — no prose.)
+
+### Fixed (minor issues resolved directly, omit if none)
+- {what was fixed, file, line}
 
 ### Issues (require separate fix)
 1. **[severity]** {title} — {description, file/line, why it matters}
 2. ...
 (If none: "No issues found.")
 
-Severity: CRITICAL (blocks correctness/functionality), MAJOR (significant quality gap), MINOR (improvement, not blocking)
+Severity: CRITICAL (blocks correctness/functionality), MAJOR (significant quality gap), MINOR (improvement, not blocking).
 
 ### Enhancement Analysis (required first-class section)
 1. **[HIGH]** {proposed improvement, rationale, expected impact}
@@ -57,21 +71,7 @@ Severity: CRITICAL (blocks correctness/functionality), MAJOR (significant qualit
 **Summary:** {one-line overall assessment}
 ```
 
-## Documentation
-
-Write a verification report to the report path assigned in `<output><report>` (typically under `.workspace/documents/`). Focus on problems, not on what passed.
-
-**Structure:**
-- **Scope:** what was reviewed (files, module) and against what requirements
-- **Requirements check:** list each requirement, whether it is met or not, and brief evidence. This is the primary alignment check between implementation and spec
-- **Overview:** structured summary of the module — key components, how they connect, and where problems exist. Not prose — use bullet points or a short list
-- **Issues found:** detailed description of each problem — severity, location, why it matters. If you already fixed it, say what you changed
-- **Enhancement analysis:** domain-aware, concrete improvements ranked by impact (HIGH / MEDIUM / LOW). Required — see Output Format above
-- **Verdict:** PASS or FAIL with one-line rationale
-
-Focus on problems and gaps. Do not elaborate on passing areas — a brief "met" in the requirements check is sufficient.
-
-Your **message back to the orchestrator** should be a concise summary: verdict (PASS/FAIL), count of issues by severity, and key blockers. Full details go in the document.
+Your **message back to the orchestrator** is a concise summary: verdict, count of issues by severity, and key blockers. Full details live in the report.
 
 ## Rules
 

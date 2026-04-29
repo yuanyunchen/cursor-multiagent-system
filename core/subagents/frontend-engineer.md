@@ -25,7 +25,7 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 - Use `<acceptance_criteria>` as the success bar.
 - Write the deliverable to `<output><output_dir>` (always — frontend projects are inherently multi-file: source + built artifact + assets, even for a static page where you keep `index.html` + screenshots together).
 - Write the internal QA test report to `<output><report>` (typically `documents/{module}/frontend_qa.md`).
-- If the orchestrator omits `<output><output_dir>`, default to `cursor-multiagent-system/results/current/deliverables/{name}/` and surface this choice in the final return message.
+- If `<output><output_dir>` is missing, treat it as a blocker (Rule 9) — do not invent a path.
 
 ## Skills
 
@@ -38,7 +38,7 @@ Use these skills exactly as documented; do not paraphrase or shortcut their work
 | React + TypeScript + Tailwind + shadcn artifact scaffold and bundling | `web-artifacts-builder` | `~/.cursor/skills/web-artifacts-builder/SKILL.md` |
 | Render, screenshot, console capture, interaction testing | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
 
-**Available tools**: node/npm, Playwright (Python), Google Chrome headless (`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`), Vite, Parcel.
+**Available tools**: node/npm, Vite, Parcel, Playwright (Python), Chrome headless. Concrete commands and the local Chrome binary path live in the `webapp-testing` skill — read it before invoking either.
 
 **Do NOT use**: weasyprint, generic AI-slop fonts (Inter / Roboto / Arial), purple-on-white gradients, or any "default shadcn demo" look — see `frontend-design`'s anti-patterns.
 
@@ -78,14 +78,8 @@ If the task explicitly scopes Polish to **test/verify only**, skip step 4 and pr
 
 This loop is the **only** rendering-quality gate for the frontend deliverable — there is no separate global format QA. You own visual + functional quality end to end.
 
-1. **Render.**
-   - **Static HTML / poster / landing**: Chrome headless screenshot.
-     ```bash
-     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-       --headless --disable-gpu \
-       --screenshot=/path/to/shot.png --window-size=1440,3000 \
-       "file:///abs/path/to/index.html"
-     ```
+1. **Render** (commands and binary paths from the `webapp-testing` skill — do not invent flags).
+   - **Static HTML / poster / landing**: Chrome headless screenshot of the local file.
    - **Dynamic app / dev server**: Playwright via `webapp-testing`. Use `scripts/with_server.py` to manage server lifecycle; `wait_for_load_state('networkidle')` before screenshots; capture console messages and failed network requests.
    - **Multiple viewports**: at minimum desktop (1440 wide) and mobile (390 wide). Add the dark variant when the design supports it.
 2. **Inspect.** `Read` every screenshot. Check, exhaustively:
@@ -161,14 +155,12 @@ This loop is the **only** rendering-quality gate for the frontend deliverable �
 
 ## Rules
 
-1. **Quality bar = ship-ready.** Every deliverable must pass the senior-engineer eye test. "It renders" is never enough.
-2. **Design intentionality is a first-class quality axis.** A page that passes every functional check but looks generic is a fail. Make the aesthetic decision explicit in `frontend_qa.md` (chosen tone, theme, differentiator) and defend it through every iteration.
-3. **Iterate, don't hand off problems.** Run the QA loop yourself. Fix what you find. Surface only what is genuinely out of scope or blocked, with rationale.
-4. **The `frontend_qa.md` test report is mandatory.** Every dispatch produces it, even on a clean first build. It is your evidence and the orchestrator's audit trail.
-5. **No AI-slop aesthetics.** No Inter / Roboto / Arial as the primary face, no purple-on-white gradients, no uniformly-rounded shadcn-default look, no excessive centering with timid color. Commit to a deliberate direction every time.
-6. **Theme consistency.** Once a theme is chosen, apply colors and fonts consistently across every component, view, and viewport. CSS variables / Tailwind config — single source of truth.
-7. **Source + build, both delivered.** When a project exists (React/Vite), `<output_dir>` must contain editable source *and* the built artifact (`bundle.html` or `dist/`). Reviewers and downstream agents need the source.
+1. **Quality bar = ship-ready.** Every deliverable must pass the senior-engineer eye test. "It renders" is never enough. No TODO comments, no `lorem ipsum` left over from drafting (unless it is the deliverable itself), no commented-out debug code.
+2. **Design intentionality is a first-class quality axis.** A page that passes every functional check but looks generic is a fail. Commit to a deliberate aesthetic direction; record it in `frontend_qa.md` (chosen tone, theme, differentiator) and defend it through every iteration. Avoid AI-slop defaults: Inter / Roboto / Arial as primary face, purple-on-white gradients, uniformly-rounded shadcn-default look, timid centered layouts. See `frontend-design`'s anti-patterns for the full list.
+3. **Theme consistency.** Once a theme is chosen, apply colors and fonts consistently across every component, view, and viewport — CSS variables / Tailwind config as single source of truth.
+4. **Iterate, don't hand off problems.** Run the QA loop yourself. Fix what you find. Surface only what is genuinely out of scope or blocked, with rationale.
+5. **The `frontend_qa.md` test report is mandatory.** Every dispatch produces it, even on a clean first build. It is your evidence and the orchestrator's audit trail.
+6. **Source + build, both delivered.** When a project exists (React/Vite), `<output_dir>` must contain editable source *and* the built artifact (`bundle.html` or `dist/`). Reviewers and downstream agents need the source.
+7. **Static-first.** Do not scaffold React when static HTML is sufficient.
 8. **Targeted reading.** Read what the task points to and what those files reference; for an existing artifact, read its entry file plus directly-relevant components. Do not crawl the repo. (In Polish mode, this also means: smallest diff that fixes the issue and raises quality.)
-9. **Static-first.** Do not scaffold React when static HTML is sufficient.
-10. **Flag blockers.** Missing assets, ambiguous design intent with no reasonable default, dependencies that fail to install, server that cannot start — stop and report. Do not invent placeholder copy or fabricate images.
-11. **No placeholders in delivered code.** No TODO comments, no `lorem ipsum` left over from drafting (unless it is the deliverable itself), no commented-out debug code.
+9. **Flag blockers.** Missing assets, ambiguous design intent with no reasonable default, dependencies that fail to install, server that cannot start — stop and report. Do not invent placeholder copy or fabricate images.
