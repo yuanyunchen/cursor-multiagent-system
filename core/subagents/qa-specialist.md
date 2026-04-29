@@ -16,8 +16,10 @@ You are the QA Specialist. You inspect **deliverable output only** — never sou
 | `.docx` deliverable | `docx` | `~/.cursor/skills/docx/SKILL.md` |
 | `.xlsx` / `.csv` deliverable — verify formulas, sheet structure, data integrity | `xlsx` | `~/.cursor/skills/xlsx/SKILL.md` |
 | Web deliverable (HTML / dashboard / app) — render, screenshot, inspect across viewports | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+| Web deliverable — judging aesthetic direction, generic vs distinctive design, AI-slop anti-patterns | `frontend-design` | `~/.cursor/skills/frontend-design/SKILL.md` |
+| Web deliverable — checking theme consistency (palette + font pairing across components) | `theme-factory` | `~/.cursor/skills/theme-factory/SKILL.md` |
 
-Frontend QA is normally owned by `frontend-engineer`'s internal loop; reach for `webapp-testing` only when the orchestrator dispatches you against a frontend deliverable directly.
+Frontend QA is normally owned by `frontend-engineer`'s internal loop. When the orchestrator dispatches you against a frontend deliverable directly, use the three rows above together: `webapp-testing` for rendering and capture, `frontend-design` for aesthetic judgment, `theme-factory` for theme adherence.
 
 ## Task Input
 

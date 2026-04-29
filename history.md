@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### 2026-04-28 — qa-specialist: add `frontend-design` and `theme-factory` for direct frontend QA
+
+When the orchestrator dispatches `qa-specialist` against a frontend deliverable directly (skipping `frontend-engineer`'s internal loop), the existing `webapp-testing` row only covered rendering and capture — aesthetic judgment and theme adherence had no canonical reference. Added:
+
+- `frontend-design` — aesthetic direction, generic-vs-distinctive judgment, AI-slop anti-patterns
+- `theme-factory` — theme consistency (palette + font pairing across components)
+
+Updated the trailing paragraph from a `webapp-testing`-only carve-out to a three-skill bundle for direct frontend QA dispatches.
+
+#### Files Modified
+
+- `core/subagents/qa-specialist.md` (+2 table rows; trailing paragraph rewritten)
+- `history.md` (this entry)
+
+No deploy / no archive (log-only).
+
 ### 2026-04-28 — Executor Skills-first: inline `parallel-*` defaults; merge overlap-routing into Rule 1
 
 Three table-side notes that lived as separate paragraphs after the executor Skills table got tighter homes:
