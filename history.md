@@ -1,5 +1,27 @@
 # Version History
 
+## v2.6.7 (2026-04-28)
+
+Add a "log-only changes" sub-protocol to `llm.md` for accumulating small parallel-agent edits without bumping a version on every one.
+
+### Changes
+
+- **`llm.md` Git & Versioning** — new sub-protocol "Log-only changes (no version bump)" added after the commit protocol. Triggered by phrases like "log change" / "记录改变" / "不更新版本号" / "log only". Reuses the commit protocol with two differences: no version bump (skip Step 1) and no deploy / archive (skip Step 4). Entries accumulate under a `## Unreleased` section at the top of `history.md` with `### <date> — <summary>` sub-headings; commit message uses `log:` prefix instead of `v<N>:`. At the next real version bump, the `Unreleased` items merge into that version's entry. The use case is multiple agents editing in parallel where individual edits don't each warrant a version.
+
+### Rationale
+
+When several agents work on the system in parallel without coordinating, every small edit getting its own version produces churn (deploy + archive + history entry per micro-change) that bypasses the value of versioning. Log-only entries let small changes accumulate under `Unreleased` and only get promoted to a real version when a coherent set is ready. **Internal-only protocol change** — affects how agents log work, not what the runtime system does — so `README.md` is intentionally not updated.
+
+### Files Modified
+
+- `llm.md`
+- `history.md` (this entry)
+- `iterations/README.md` (v2.6.7 row added; gitignored)
+
+### Tested On
+
+- The new sub-protocol is itself self-applying: this version bump (v2.6.7) is the right path for a workflow change, while future micro-edits would correctly take the log-only path. Both paths cross-reference consistently.
+
 ## v2.6.6 (2026-04-28)
 
 Apply `write-agent-file` skill review to `llm.md`: fix two stale archive-scope statements and dedup one description block. Internal-only documentation refactor — no agent capability or workflow change.

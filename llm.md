@@ -135,6 +135,10 @@ Iteration-level artifacts (specs, reviews, reflections, plans) accumulate here d
    ```
 7. **Report to the user:** old → new version, one-line change summary.
 
+**Log-only changes (no version bump).** When the user asks to "log change" / "记录改变" / "不更新版本号" / "log only", run the same protocol with two differences: skip Step 1 (no version bump) and Step 4 (no deploy / archive). Append the entry under a `## Unreleased` section at the top of `history.md` (create the section if missing); use a `### <date> — <one-line summary>` sub-heading per change so multiple log-only entries stack chronologically. Commit message: `log: <one-line summary>` (no `v<N>:` prefix). At the next real version bump, merge all `Unreleased` items into that version's entry.
+
+Use this when several agents are editing in parallel and individual edits don't each warrant a version — accumulate them in `Unreleased`, then bump once when a coherent set is ready to ship.
+
 ---
 
 ## Version Transition
