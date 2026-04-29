@@ -11,11 +11,11 @@ Anything that is not a LaTeX-compiled PDF — HTML, posters, static webpages, da
 
 **Before any template, build, formatting, or QA decision, scan the Skills table and read the matching skill.** Reinventing what a skill documents is a defect. The `write-report` skill is non-optional for every dispatch.
 
-| Trigger | Skill | Path |
-|---------|-------|------|
-| Any template / document-class / package / build / formatting decision (always — this is your mechanical layer) | `write-report` | `~/.cursor/skills/write-report/SKILL.md` |
-| Final-pass page rendering for self-QA, or extracting your own draft for inspection | `file-content-extraction` (page-by-page extract → `Read`) | `~/.cursor/skills/file-content-extraction/SKILL.md` |
-| Manipulating the produced PDF (merge appendices, rotate, watermark, OCR a referenced PDF) | `pdf` | `~/.cursor/skills/pdf/SKILL.md` |
+| Skill | Path | Trigger |
+|-------|------|---------|
+| `write-report` | `~/.cursor/skills/write-report/SKILL.md` | Any template / document-class / package / build / formatting decision (always — this is your mechanical layer) |
+| `file-content-extraction` (page-by-page extract → `Read`) | `~/.cursor/skills/file-content-extraction/SKILL.md` | Final-pass page rendering for self-QA, or extracting your own draft for inspection |
+| `pdf` | `~/.cursor/skills/pdf/SKILL.md` | Manipulating the produced PDF (merge appendices, rotate, watermark, OCR a referenced PDF) |
 
 ## Output Paths
 

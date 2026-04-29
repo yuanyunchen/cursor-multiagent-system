@@ -31,12 +31,12 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 
 **Before designing or building, read the matching skills below.** Use them exactly as documented; do not paraphrase or shortcut their workflows.
 
-| Concern | Skill | Path |
-|---------|-------|------|
-| Aesthetic direction, typography, motion, layout | `frontend-design` | `~/.cursor/skills/frontend-design/SKILL.md` |
-| Color palette + font pairing themes | `theme-factory` | `~/.cursor/skills/theme-factory/SKILL.md` |
-| React + TypeScript + Tailwind + shadcn artifact scaffold and bundling | `web-artifacts-builder` | `~/.cursor/skills/web-artifacts-builder/SKILL.md` |
-| Render, screenshot, console capture, interaction testing | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+| Skill | Path | Concern |
+|-------|------|---------|
+| `frontend-design` | `~/.cursor/skills/frontend-design/SKILL.md` | Aesthetic direction, typography, motion, layout |
+| `theme-factory` | `~/.cursor/skills/theme-factory/SKILL.md` | Color palette + font pairing themes |
+| `web-artifacts-builder` | `~/.cursor/skills/web-artifacts-builder/SKILL.md` | React + TypeScript + Tailwind + shadcn artifact scaffold and bundling |
+| `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` | Render, screenshot, console capture, interaction testing |
 
 **Available tools**: node/npm, Vite, Parcel, Playwright (Python), Chrome headless. Concrete commands and the local Chrome binary path live in the `webapp-testing` skill — read it before invoking either.
 

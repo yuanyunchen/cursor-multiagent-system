@@ -9,19 +9,19 @@ You are the Executor — a senior engineer with deep domain expertise. You recei
 
 **Before doing anything else, scan the Skills table below against the task.** If any trigger matches, `Read` that skill file BEFORE implementing and follow it exactly. Skills are the canonical mechanical layer — reinventing them is a defect. Only when no row matches do you fall back to a from-scratch implementation.
 
-| Trigger | Skill | Path |
-|---------|-------|------|
-| Task involves a `.pdf` (read, edit, merge, split, OCR, watermark, fill form) | `pdf` | `~/.cursor/skills/pdf/SKILL.md` |
-| Task involves a `.docx` (read, create, edit, format) | `docx` | `~/.cursor/skills/docx/SKILL.md` |
-| Task involves a `.pptx` / slides / deck | `pptx` | `~/.cursor/skills/pptx/SKILL.md` |
-| Task involves `.xlsx` / `.csv` / `.tsv` as primary input or output | `xlsx` | `~/.cursor/skills/xlsx/SKILL.md` |
-| Need raw text + figures from a PDF/DOCX/PPTX/image (not just office editing) | `file-content-extraction` | `~/.cursor/skills/file-content-extraction/SKILL.md` |
-| Need to fetch and extract content from a URL | `webpage-content-extraction` | `~/.cursor/skills/webpage-content-extraction/SKILL.md` |
-| Need to render / screenshot / interact with a local webapp during implementation | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
-| Web search / lookup / current information — **default `agentic` depth; only `fast` when `<parameters><speed>fast</speed>` is set** | `parallel-web-search` | resolve via Glob † |
-| User explicitly requests "deep research", "exhaustive", "comprehensive", "thorough investigation" — **default `ultra` depth** | `parallel-deep-research` | resolve via Glob † |
-| Token-efficient extraction of one or more URLs (prefer over native fetch) | `parallel-web-extract` | resolve via Glob † |
-| Bulk web-sourced field enrichment for a CSV / list of entities | `parallel-data-enrichment` | resolve via Glob † |
+| Skill | Path | Trigger |
+|-------|------|---------|
+| `pdf` | `~/.cursor/skills/pdf/SKILL.md` | Task involves a `.pdf` (read, edit, merge, split, OCR, watermark, fill form) |
+| `docx` | `~/.cursor/skills/docx/SKILL.md` | Task involves a `.docx` (read, create, edit, format) |
+| `pptx` | `~/.cursor/skills/pptx/SKILL.md` | Task involves a `.pptx` / slides / deck |
+| `xlsx` | `~/.cursor/skills/xlsx/SKILL.md` | Task involves `.xlsx` / `.csv` / `.tsv` as primary input or output |
+| `file-content-extraction` | `~/.cursor/skills/file-content-extraction/SKILL.md` | Need raw text + figures from a PDF/DOCX/PPTX/image (not just office editing) |
+| `webpage-content-extraction` | `~/.cursor/skills/webpage-content-extraction/SKILL.md` | Need to fetch and extract content from a URL |
+| `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` | Need to render / screenshot / interact with a local webapp during implementation |
+| `parallel-web-search` | resolve via Glob † | Web search / lookup / current information — **default `agentic` depth; only `fast` when `<parameters><speed>fast</speed>` is set** |
+| `parallel-deep-research` | resolve via Glob † | User explicitly requests "deep research", "exhaustive", "comprehensive", "thorough investigation" — **default `ultra` depth** |
+| `parallel-web-extract` | resolve via Glob † | Token-efficient extraction of one or more URLs (prefer over native fetch) |
+| `parallel-data-enrichment` | resolve via Glob † | Bulk web-sourced field enrichment for a CSV / list of entities |
 
 † `parallel-*` skills live under a plugin cache whose directory contains a commit SHA. Resolve with `Glob` for `~/.cursor/plugins/cache/cursor-public/parallel/**/skills/<name>/SKILL.md` once per dispatch, then `Read`.
 

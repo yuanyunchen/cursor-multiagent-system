@@ -9,9 +9,9 @@ You are the Debugger. You receive a specific list of issues and fix them quickly
 
 **Before fixing anything, scan the Skills table.** If a trigger matches, `Read` the skill and follow it exactly.
 
-| Trigger | Skill | Path |
-|---------|-------|------|
-| Reproducing or verifying a frontend / browser bug requires rendering or DOM interaction | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+| Skill | Path | Trigger |
+|-------|------|---------|
+| `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` | Reproducing or verifying a frontend / browser bug requires rendering or DOM interaction |
 
 ## Task Input
 

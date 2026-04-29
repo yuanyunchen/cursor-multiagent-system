@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### 2026-04-28 — Skills tables: reorder columns to `Skill | Path | Trigger`
+
+Readability fix. The skill name is what a reader scans for; putting it in column 1 (and the path adjacent) lets the trigger description run as long as it needs without burying the skill identifier.
+
+Applied to: `executor.md`, `debugger.md`, `qa-specialist.md`, `report-writer.md`, `frontend-engineer.md` (last column header renamed `Concern` → `Trigger` for consistency? — kept as `Concern` since that subagent's framing predates the trigger-based pattern; column order normalized only).
+
+`file-extractor.md` skipped — its routing table is a 2D matrix (source type × `no_image`), not the standard three-column trigger/skill/path shape, so reordering would break the matrix semantics.
+
+#### Files Modified
+
+- `core/subagents/executor.md`
+- `core/subagents/debugger.md`
+- `core/subagents/qa-specialist.md`
+- `core/subagents/report-writer.md`
+- `core/subagents/frontend-engineer.md`
+- `history.md` (this entry)
+
+No deploy / no archive (log-only).
+
 ### 2026-04-28 — qa-specialist: add `frontend-design` and `theme-factory` for direct frontend QA
 
 When the orchestrator dispatches `qa-specialist` against a frontend deliverable directly (skipping `frontend-engineer`'s internal loop), the existing `webapp-testing` row only covered rendering and capture — aesthetic judgment and theme adherence had no canonical reference. Added:
