@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### 2026-04-28 — Executor Skills-first: inline `parallel-*` defaults; merge overlap-routing into Rule 1
+
+Three table-side notes that lived as separate paragraphs after the executor Skills table got tighter homes:
+
+- **Research depth defaults** (`agentic` for `parallel-web-search`, `ultra` for `parallel-deep-research`) inlined into the trigger column of the corresponding rows — they belong to the skill choice, not the file.
+- **`parallel-*` Glob resolution** collapsed to a one-line footnote (`†`) below the table; the skills live in a plugin cache whose path contains a commit SHA, so the executor still needs the resolution recipe somewhere — but it is metadata, not policy.
+- **Routing-when-triggers-overlap** absorbed into Rule 1 (Skills-first). One rule for one decision; saves a rule slot and removes the prose-vs-rule split.
+
+Net change: `executor.md` 62 → 58 lines (−4). No behavior change for downstream consumers; same triggers, same defaults, same overlap policy.
+
+#### Files Modified
+
+- `core/subagents/executor.md`
+- `history.md` (this entry)
+
+No deploy / no archive (log-only).
+
 ### 2026-04-28 — Skills-first: rename sections, hoist before Task Input, add Rule 1
 
 Follow-up to the previous entry. Two changes for human readability and explicit prioritization:
