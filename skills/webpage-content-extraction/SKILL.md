@@ -1,124 +1,84 @@
 ---
 name: webpage-content-extraction
-description: Extract raw content (text + figures) from web pages. Fetches text via WebFetch, discovers and downloads images from raw HTML (WebFetch silently drops images). Falls back to Chrome headless PDF conversion for JS-rendered graphics, running the full PDF extraction pipeline on the rendered page. For document files (PDF, DOCX, PPTX), use file-content-extraction instead.
+description: Extract complete content (text + figures) from a web page URL with full image discovery. Produces a faithful content.md plus a figures/ directory. Use whenever a URL is the input and figures matter — articles, blog posts, documentation pages, tutorials, papers rendered as HTML, anything where charts/diagrams/screenshots are part of the meaning. Do NOT use for text-only URL extraction — the caller (file-extractor) bypasses this skill and uses /parallel-web-extract directly for that, since it's faster and gets equivalent text. Do NOT use for local files (use file-content-extraction).
 ---
 
 # Web Page Content Extraction
 
-Extract COMPLETE content from a web page. Produce a `content.md` file that faithfully captures all text and figures, with figures placed inline at their original positions.
+Extract the **full** content of a web page — text in source order plus every meaningful image — into `content.md` + `figures/`. This skill exists for one reason: `WebFetch` silently drops `<img>` tags, so the only way to get faithful figure coverage is a separate raw-HTML pipeline.
 
-## Scope
+## When this skill runs vs. when it doesn't
 
-This skill handles: **web pages (URLs).** For document files (PDF, DOCX, PPTX, images), use the `file-content-extraction` skill at `~/.cursor/skills/file-content-extraction/SKILL.md`.
+The caller (typically `file-extractor`) decides:
+- **Text-only / `no_image: true`** → caller invokes `/parallel-web-extract` directly, **does not enter this skill**. That path is faster and the text quality is comparable.
+- **Full / default** → caller invokes this skill for the complete pipeline below.
 
-This skill **extracts content only**. It does not:
-- Reorganize, restructure, or rewrite content
-- Remove "unimportant" sections
-- Summarize or interpret meaning
-- Delete intermediate files or clean up directories
+Inside this skill, assume figures are wanted. There is no "no-image mode" here — that case is routed elsewhere.
 
-Those tasks belong to the **file-extractor agent**, which invokes this skill as a first step, then organizes the extracted content.
+## Output
 
-## Input & Output
+Written to `<output_dir>`:
+- `content.md` — page text in source order; inline figure references `![description](figures/fig_{N}.png)` at the positions where the original page had images; Figure Index table at the end; Extraction notes if anything was uncertain.
+- `figures/` — downloaded images, sequential `fig_1.png`, `fig_2.png`, …  Filtered to remove icons/decoration (below 200px on either side or 80,000 px² in area) and deduplicated by source URL.
 
-**Input:** A URL.
+## Pipeline
 
-**Output:** Written to the specified output directory:
-- `<output_dir>/content.md` — faithful extraction with:
-  - Full text from the page
-  - Inline figure references: `![description](figures/fig_{N}.png)`
-  - Tables rendered as markdown tables
-  - A Figure Index table at the end for quick reference
-  - Extraction notes (if issues encountered)
-- `<output_dir>/figures/` — downloaded figures, named `fig_{N}.png`
+Text and figures come from **separate** sources because no single tool reliably gives both.
 
-### Figure Naming Convention
-- `fig_{N}.png` — sequential numbering matching order of appearance in page
-- After download, filter out:
-  - Small icons and emojis (below 200px on either dimension or below 80,000px² area)
-  - Duplicate downloads (same URL appearing multiple times)
+### 1. Text — `WebFetch`
 
----
+`WebFetch` reads the full DOM (including content inside collapsed `<details>`, tabs, accordions) and returns clean markdown. This is the primary source for text.
 
-## Extraction Strategy
+It does **not** return images — silently. Do not rely on it for figure discovery.
 
-### Step 1 — Fetch text
+### 2. Figures — raw HTML
 
-Use `WebFetch` to get the page as markdown. This is the primary source for **text content**. WebFetch reads the full DOM, including content inside collapsed `<details>` elements, tabs, and accordions.
+Pull the raw HTML and extract `<img>` sources:
 
-**Important:** `WebFetch` silently drops `<img>` tags during HTML-to-markdown conversion. Do NOT rely on it for image discovery — that is handled in Step 2.
-
-### Step 2 — Discover and download images from raw HTML
-
-Fetch the raw HTML separately and extract `<img>` sources:
 ```
 curl -sL "<url>" | rg -o '<img[^>]+src="([^"]*)"' -r '$1' | sort -u > /tmp/img_urls.txt
 ```
 
-For each image URL in the list:
-1. Resolve relative URLs against the page's base URL (e.g., `/assets/fig.png` → `https://example.com/assets/fig.png`).
-2. Download to `<output_dir>/figures/`:
+For each URL, resolve relative paths against the page base, then download:
+
 ```
 curl -sL -o <output_dir>/figures/fig_{N}.png "<absolute_image_url>"
 ```
-3. After downloading all, filter out small/decorative images:
-   - Remove images below 200px on either dimension or below 80,000px² area.
-   - Remove duplicate downloads (same URL appearing multiple times).
-4. Name sequentially: `fig_1.png`, `fig_2.png`, etc.
 
-If the `rg` command finds zero `<img>` tags but the text from Step 1 references figures (e.g., "the image below", "as shown in the figure"), the page likely uses JS-rendered graphics or CSS background images — proceed to the Fallback.
+After download, filter by size and deduplicate. Number sequentially in order of appearance on the page.
 
-### Step 3 — Figure inspection
+If `<img>` count is zero but the text references figures ("the chart below", "as shown"), the page likely renders graphics in JS or uses CSS backgrounds — proceed to the fallback.
 
-For every figure in `figures/`, use `Read` to view the image. Describe content, note what it illustrates, and map it back to the corresponding text section.
+### 3. Figure inspection
 
-### Step 4 — Assemble content.md
+`Read` every file in `figures/`. For each, describe what it shows and confirm it matches the surrounding text. Use these descriptions as the alt text in the inline references.
 
-Write `content.md` using the text from Step 1, inserting figure references (`![description](figures/fig_{N}.png)`) at the positions where the original page had images. Use the figure descriptions from Step 3 as alt text. Append a Figure Index table at the end.
+### 4. Assemble `content.md`
 
----
+Use Step 1's text as the body. Insert `![description](figures/fig_{N}.png)` at the positions where the original page had `<img>` tags. Append a Figure Index table at the end. Add an Extraction notes section for anything unresolved.
 
-## Fallback — PDF conversion
+## Fallback — Chrome PDF rendering
 
-Use when Step 2 yields zero images on a page that references figures, or when the page uses JS-rendered charts (echarts, d3, chart.js, plotly, canvas-based graphics).
+Use when Step 2 yields zero figures on a page that clearly references them, or when graphics are JS-rendered (echarts, d3, chart.js, plotly, canvas).
 
-**Step F1 — Render page to PDF:**
 ```
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   --headless --disable-gpu --print-to-pdf=<output_dir>/page.pdf \
   --no-pdf-header-footer "<url>"
 ```
 
-**Step F2 — Run the full PDF extraction pipeline on `page.pdf`:**
-Follow the `file-content-extraction` skill's PDF strategy (all three steps) on `page.pdf`:
-1. `Read` the rendered PDF directly.
-2. Run `python ~/.cursor/skills/file-content-extraction/extract_doc.py <output_dir>/page.pdf <output_dir>/pdf_extraction` to produce `content.md` + `figures/`.
-3. Inspect each extracted figure with `Read`.
-
-**Step F3 — Merge results:**
-- **Text:** Use the text from WebFetch (Step 1) as the primary source — it preserves links, code blocks, and formatting better than PDF-extracted text. Only supplement with PDF-extracted text if WebFetch missed significant content.
-- **Figures:** Merge figures from the PDF extraction into `<output_dir>/figures/`. Rename to continue the `fig_{N}` sequence. Deduplicate any figures that appear in both sources.
-
----
-
-## Output Quality
-
-The `content.md` produced by this skill is a **faithful extraction**, not a polished document:
-- Text preserves the page's original structure and order.
-- Figures are placed inline at the positions where they appeared on the page.
-- The Figure Index table at the end provides a quick reference.
-- No content is removed or summarized.
-
-The **file-extractor agent** takes this raw extraction and produces the final structured, organized output.
-
----
+Then run the **full** PDF pipeline from `file-content-extraction` on `page.pdf` — `Read` the rendered PDF, run `extract_doc.py`, inspect each extracted figure. Merge results:
+- **Text** stays from `WebFetch` (Step 1) — it preserves links, code blocks, and formatting better than PDF-extracted text.
+- **Figures** from the PDF extraction are renamed into the `fig_{N}` sequence and merged into `<output_dir>/figures/`. Deduplicate against any figures already there.
 
 ## Rules
 
-1. **Completeness is paramount.** Missing content is failure. When in doubt, include it.
-2. **Never trust WebFetch for images.** Always run the raw HTML image discovery (Step 2) regardless of what WebFetch returns.
-3. **Text from WebFetch, figures from raw HTML.** These are separate pipelines. The PDF fallback supplements figures — it does not replace WebFetch text.
-4. **Full PDF pipeline on fallback.** When the fallback is triggered, run the complete PDF extraction (Read + script + figure inspection), not just figure extraction.
-5. **Cross-check.** After assembling content.md, verify that every figure referenced in the text has a corresponding file in `figures/`. Flag any gaps.
-6. **Preserve source structure.** Do not reorganize content. Keep the page's original order.
-7. **Flag uncertainty** rather than guessing.
+1. **Never trust `WebFetch` for images.** Always run Step 2 regardless of what `WebFetch` returns. This is the failure this skill exists to prevent.
+
+2. **Text and figures are separate pipelines.** The PDF fallback supplements figures only — it does not replace `WebFetch` text. Mixing the two text sources produces inconsistent formatting.
+
+3. **Verify every reference resolves.** After assembly, every `![…](figures/fig_N.png)` in `content.md` must point at a real file in `figures/`. Flag any gaps in Extraction notes rather than silently dropping the reference.
+
+4. **Preserve source order.** Do not reorganize content into topical sections — that is the calling agent's job.
+
+5. **Flag uncertainty.** If text mentions a figure that no extraction step recovered, say so in Extraction notes. Better to flag than to hide.

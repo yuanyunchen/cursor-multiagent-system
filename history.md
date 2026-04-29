@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+### 2026-04-28 — Skills-first: rename sections, hoist before Task Input, add Rule 1
+
+Follow-up to the previous entry. Two changes for human readability and explicit prioritization:
+
+1. **Section rename + position.** `## Skills (read first when applicable)` → `## Skills-first`, hoisted to immediately after the role paragraph (before `## Task Input`) in `executor`, `debugger`, `qa-specialist`, `report-writer`, `file-extractor`. `frontend-engineer` keeps its existing position (after `## Task Input`) because it sits before `## Routing`, which depends on the Skills section. All Skills-first sections now open with a bold imperative ("Before X, scan / read…").
+2. **Skills-first as Rule 1.** Every subagent with a Skills-first section now has `Rule 1: Skills-first` at the top of `## Rules`, in addition to the section itself. Surfacing it twice — once in dedicated section, once in the Rules list — is intentional; this is a high-value rule and Rules sections are scanned at decision points where Skills-first must trigger first.
+
+`verifier` unchanged (no skills apply to read-only code review).
+
+#### Side effects
+
+- `executor` Rules renumbered 1→7 (was 1→6).
+- `debugger` Rules renumbered 1→6 (was 1→5).
+- `qa-specialist` Rules renumbered 1→10 (was 1→9). The Skills-first section's "Rule 4 violation" cross-reference replaced with a direct phrasing ("violates the exhaustive-not-sampled rule below") to avoid renumber drift.
+- `report-writer` Rule 2 ("Skill owns mechanics") absorbed into new Rule 1 ("Skills-first"); Rules now 1→3.
+- `file-extractor` Rules renumbered 1→9 (was 1→8).
+- `frontend-engineer` Rules renumbered 1→10 (was 1→9); the in-body "(Rule 9)" reference for missing `<output_dir>` updated to "(Rule 10)".
+
+#### Files Modified
+
+- `core/subagents/executor.md`
+- `core/subagents/debugger.md`
+- `core/subagents/qa-specialist.md`
+- `core/subagents/report-writer.md`
+- `core/subagents/file-extractor.md`
+- `core/subagents/frontend-engineer.md`
+- `history.md` (this entry)
+
+No deploy / no archive (log-only).
+
 ### 2026-04-28 — Skills-first subagents: per-subagent Skills tables; fix `file-extractor` Initialize-only claim
 
 Make subagents skills-first: each subagent declares the skills it must read first when its triggers match. Orchestrator (`agent.md`) intentionally NOT given a global skills table — routing-by-deliverable-type stays implicit via subagent descriptions. Also fixes `file-extractor`'s "Initialize-only" claim, which contradicted Step 5's `NEEDS_MORE_CONTEXT` loop in `agent.md` line 113 and `file-extractor`'s own description.

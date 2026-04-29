@@ -1,131 +1,71 @@
 ---
 name: file-content-extraction
-description: Extract raw content (text + figures) from document files (PDF, DOCX, PPTX, images). Produces a faithful content.md with inline figure references and a figures/ directory. Does NOT reorganize, summarize, or interpret — that is the file-extractor agent's job. Not needed for lightweight files (text, markdown, CSV) — those can be read natively. For web pages, use the webpage-content-extraction skill instead.
+description: Extract complete raw content (text + figures) from a local document file — PDF, DOCX, PPTX, or image. Produces a faithful content.md plus a figures/ directory. Use this skill whenever the user wants a document parsed, ingested, summarized, or fed to another agent — including phrases like "read this PDF", "what's in slides.pptx", "extract the report", "process this paper". Do NOT use for URLs (use webpage-content-extraction) or for already-machine-readable files like .py / .md / .csv (read them natively). Honors a `no_image` directive from the caller — when set, produces text-only output and skips figure work.
 ---
 
 # File Content Extraction
 
-Extract COMPLETE content from a document file. Produce a `content.md` file that faithfully captures all text and figures from the source, with figures placed inline at their original positions.
+Extract everything a document carries — every paragraph, table, figure — into a `content.md` you can hand to any downstream consumer. **Faithful reproduction is the contract**: nothing is reorganized, summarized, or judged "unimportant". That work belongs to the `file-extractor` agent that calls this skill.
 
-## Scope
+## Modes
 
-This skill handles: **PDF, DOCX, PPTX, images.** For web pages (URLs), use the `webpage-content-extraction` skill at `~/.cursor/skills/webpage-content-extraction/SKILL.md`.
+The caller's task envelope may include `no_image: true` in `<parameters>`. Default is `no_image: false`.
 
-This skill **extracts content only**. It does not:
-- Reorganize, restructure, or rewrite content
-- Remove "unimportant" sections
-- Summarize or interpret meaning
-- Delete intermediate files or clean up directories
+| Mode | Output | Skip |
+|---|---|---|
+| **Default** (`no_image: false`) | `content.md` + `figures/` with inline `![…](figures/…)` references and a Figure Index table | nothing |
+| **Text-only** (`no_image: true`) | `content.md` only | figure extraction, figure inspection, figure references |
 
-Those tasks belong to the **file-extractor agent**, which invokes this skill as a first step, then organizes the extracted content.
+Why this exists: figure inspection is the slowest step, and many downstream consumers (e.g. report-writer compiling text, RAG indexing) only need text. Honoring the flag at this layer prevents wasted work.
 
-## Input & Output
+## Output
 
-**Input:** A file path (PDF, DOCX, PPTX, or image).
+Written to `<output_dir>` provided by the caller:
 
-**Output:** Written to the specified output directory:
-- `<output_dir>/content.md` — faithful extraction with:
-  - Full text organized by page/slide boundaries
-  - Inline figure references at their source positions: `![Page N figure — WxHpx](figures/p{N}_fig_{M}.png)`
-  - Tables rendered as markdown tables
-  - A Figure Index table at the end for quick reference
-  - Extraction notes (if issues encountered)
-- `<output_dir>/figures/` — extracted figures, named `p{page}_fig_{N}.png`
+- `content.md` — text organized by source page/slide boundaries; tables as markdown; figure references inline at source positions (default mode only); Figure Index table at the end (default only); extraction notes when something was uncertain.
+- `figures/` — extracted images named `p{page}_fig_{N}.png` (PDF) or `fig_{N}.png` (DOCX/PPTX). Default mode only.
 
-### Figure Naming Convention
-- **PDF:** `p{page}_fig_{N}.png` — page number from the source PDF, N is the figure index within that page
-- **DOCX/PPTX:** `fig_{N}.png` — sequential numbering (no page concept available from extraction)
-- The extraction script automatically filters out:
-  - Alpha masks (smask)
-  - Small icons and emojis (below 200px on either dimension or below 80,000px² area)
-  - Duplicate images (same embedded object reused across pages)
+Figures below 200px on either side or 80,000 px² in area are filtered (decorative/icon noise). Duplicates (same embedded object reused across pages) are deduplicated.
 
----
+## Workflow
 
-## Strategy by File Type
+The pipeline is the same shape for PDF/DOCX/PPTX; only the front-loaded `Read` step varies in value.
 
-### PDF
+### 1. Native Read (always)
 
-**Step 1 — Native Read:**
-Use the `Read` tool directly on the PDF. This provides:
-- Immediate understanding of structure, length, and content type.
-- Text that may be missed or reformatted by the extraction script.
-- A baseline to compare against later extraction results.
+Use the `Read` tool on the input file directly. This gives an immediate sense of structure, length, and content type, and surfaces text the script may miss (non-standard encodings, embedded objects, OCR'd glyphs). The script result is then cross-checked against this baseline.
 
-**Step 2 — Script Extraction:**
+For pure images, `Read` is the entire extraction — describe all visible text, diagrams, labels, layouts, annotations.
+
+### 2. Script extraction
+
 ```
 python ~/.cursor/skills/file-content-extraction/extract_doc.py <input_path> <output_dir>
 ```
-Produces `content.md` + `figures/p{page}_fig_{N}.png`.
-Read `content.md` fully. Compare against Step 1 — note any differences.
 
-**Step 3 — Figure Inspection:**
-For every figure in `figures/`, use `Read` to view the image:
-- Describe diagrams, charts, graphs, photos, layouts.
-- Note spatial relationships, labels, legends, axes, annotations.
-- Identify anything present visually but absent from text extraction.
-- Use the figure name (`p{page}_fig_{N}.png`) to locate where in content.md this figure belongs.
+Produces `content.md` + `figures/`. Read `content.md` fully. Compare against Step 1 — note discrepancies in the Extraction notes section.
 
-**Cross-check:** Union of all three steps = final content. Include anything caught by any step. Flag discrepancies.
+### 3. Figure inspection — **default mode only**
 
-**Adaptive:** Pure-text PDFs (no figures extracted) → Step 1 may suffice. Visual-heavy PDFs → all three steps are essential.
+Use `Read` on every file in `figures/`. For each, describe what it shows (chart axes, labels, layout, what it illustrates) and verify the description matches the surrounding text in `content.md`. The figure name maps to its location in the page layout — use it to confirm the inline reference is positioned correctly.
 
----
+In `no_image` mode, skip Step 3 entirely. After Step 2, delete the `figures/` directory and remove any `![…](figures/…)` lines and the Figure Index table from `content.md`.
 
-### DOCX
+### Type-specific notes
 
-1. Use `Read` directly on the file for initial understanding.
-2. Run: `python ~/.cursor/skills/file-content-extraction/extract_doc.py <input_path> <output_dir>`
-   - Extracts text (headings, paragraphs, lists, tables) via `python-docx`.
-   - Extracts embedded images into `figures/` (filtered for meaningful content).
-3. Read `content.md` fully. Compare against Step 1.
-4. View each figure with `Read`. Describe what each figure shows.
-5. Watch for: headers/footers, footnotes, tracked changes, text boxes, SmartArt, or equations that `python-docx` cannot extract.
-
----
-
-### PPTX
-
-1. Use `Read` directly on the file for initial understanding.
-2. Run: `python ~/.cursor/skills/file-content-extraction/extract_doc.py <input_path> <output_dir>`
-   - Extracts text (slide titles, body text, notes, tables) via `python-pptx`.
-   - Extracts embedded images into `figures/` (filtered for meaningful content).
-3. Read `content.md` fully. Compare against Step 1.
-4. View each figure with `Read`. Describe what each figure shows.
-5. Watch for: speaker notes, visual layouts flattened by extraction, SmartArt.
-
----
-
-### Image
-
-Use `Read` directly on the image. Describe:
-- All visible text.
-- Diagrams, charts, graphs: structure, labels, values, relationships.
-- Layouts: spatial arrangement, sections, visual hierarchy.
-- Handwritten content, annotations, watermarks.
-
-For text-heavy images, also run the extraction script for better OCR.
-
----
-
-## Output Quality
-
-The `content.md` produced by this skill is a **faithful extraction**, not a polished document:
-- Text is organized by page/slide boundaries (not by semantic topics).
-- Figures are placed inline at the page where they appeared in the source.
-- The Figure Index table at the end provides a quick reference with page, dimensions, and file path.
-- No content is removed or summarized.
-
-The **file-extractor agent** takes this raw extraction and produces the final structured, organized output.
-
----
+- **PDF** — visual-heavy decks need all three steps; pure-text PDFs may be done after Step 1 alone.
+- **DOCX** — `python-docx` cannot extract headers/footers, footnotes, tracked changes, text boxes, SmartArt, or equations. Flag what's missing in Extraction notes.
+- **PPTX** — `python-pptx` flattens visual layouts and may miss SmartArt. Speaker notes are extracted.
+- **Image** — Step 1 only; no script needed unless OCR'd text is dense (then run the script for OCR pass).
 
 ## Rules
 
-1. **Completeness is paramount.** Missing content is failure. When in doubt, include it.
-2. **Be adaptive.** A 3-page text PDF requires different effort than a 50-page visual slide deck.
-3. **Read first, extract second.** Always use `Read` on the file first. The script supplements.
-4. **Cross-check.** Text extraction misses visuals. Visual inspection misses searchable text. Use both.
-5. **Preserve source structure.** Keep page/slide boundaries. Do not reorganize.
-6. **Minimize tokens, maximize information.** Compress formatting, not content.
-7. **Flag uncertainty** rather than guessing.
+1. **Completeness is the contract.** Missing content is failure. When in doubt, include it. Faithful reproduction over perceived relevance — the calling agent decides what's important, not this skill.
+
+2. **Read first, extract second.** Native `Read` always runs before the script — the script's job is to supplement, not replace, that baseline. Skipping Step 1 routinely loses non-OCR'd text and embedded objects the script can't handle.
+
+3. **Preserve source structure.** Keep page/slide boundaries intact. Do not merge sections, reorder, or impose a topical organization — the `file-extractor` agent owns reorganization.
+
+4. **No-image mode is binary.** When `no_image: true`, the output dir contains only `content.md` — no `figures/`, no figure references, no Figure Index. When `no_image: false`, every figure file in `figures/` must be referenced from `content.md`. Never produce a half-state.
+
+5. **Flag uncertainty.** Add an Extraction notes section at the end of `content.md` for anything you suspect is missing or garbled (failed equation, broken table, unreadable scan). Better to flag than to hide.

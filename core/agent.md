@@ -237,7 +237,7 @@ Deviations require a one-line note in `index.md`'s open-decisions section.
   <acceptance_criteria>{testable}</acceptance_criteria>
   <mode>{optional — Full | Lightweight | Format; for frontend-engineer: Full | Polish}</mode>
   <allowed_files>{optional — debugger edit scope only}</allowed_files>
-  <parameters>{optional — agent-specific structured settings: output_type, template, style, reference, publisher, venue, citation_style, paper_size, page_limit, audience, section_preferences, theme, framework, target_viewport}</parameters>
+  <parameters>{optional — agent-specific structured settings: output_type, template, style, reference, publisher, venue, citation_style, paper_size, page_limit, audience, section_preferences, theme, framework, target_viewport, no_image}</parameters>
 </task>
 ```
 
