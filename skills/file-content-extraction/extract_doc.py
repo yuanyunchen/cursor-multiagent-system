@@ -4,21 +4,31 @@ extract_doc.py — Extract and structure content from files and folders.
 Supports: PDF, DOCX, PPTX, images, text/code files, and directories.
 
 Usage:
-    python extract_doc.py <input_path> [output_dir]
+    python extract_doc.py <input_path> [output_dir] [--no-image]
     python extract_doc.py ./my_project [output_dir]     # folder mode
+
+Flags:
+    --no-image      Skip all figure extraction and decoding. Produces only
+                    content.md with no figure references and no figures/ dir.
+                    Useful for fast text-only ingestion (RAG, search).
 
 Output:
     output_dir/
     ├── content.md              # Structured extraction (main deliverable)
-    └── figures/                # Extracted embedded images
+    └── figures/                # Extracted embedded images (omitted with --no-image)
 """
 
+import argparse
 import os
 import sys
 import subprocess
 import shutil
 import tempfile
 from pathlib import Path
+
+# Module-level switch toggled by --no-image. Each extractor checks this before
+# any image decode/copy/write. Default False keeps existing behavior intact.
+NO_IMAGE = False
 
 
 # ---------------------------------------------------------------------------
@@ -310,10 +320,12 @@ def extract_pdf(pdf_path, output_dir):
 
     md.append(f"**Pages:** {total_pages}\n")
 
-    figures_dir = os.path.join(output_dir, "figures")
-    os.makedirs(figures_dir, exist_ok=True)
-
-    figures = extract_pdf_figures(pdf_path, figures_dir)
+    if NO_IMAGE:
+        figures = []
+    else:
+        figures_dir = os.path.join(output_dir, "figures")
+        os.makedirs(figures_dir, exist_ok=True)
+        figures = extract_pdf_figures(pdf_path, figures_dir)
 
     fig_by_page = {}
     for fig_name, page, w, h in figures:
@@ -386,9 +398,12 @@ def extract_docx(docx_path, output_dir):
     if props.author: parts.append(f"**Author:** {props.author}")
     if parts: md.append(" | ".join(parts))
 
-    figures_dir = os.path.join(output_dir, "figures")
-    os.makedirs(figures_dir, exist_ok=True)
-    figures = extract_office_figures(docx_path, figures_dir, "word/media")
+    if NO_IMAGE:
+        figures = []
+    else:
+        figures_dir = os.path.join(output_dir, "figures")
+        os.makedirs(figures_dir, exist_ok=True)
+        figures = extract_office_figures(docx_path, figures_dir, "word/media")
 
     table_idx = 0
     extracted_text_len = 0
@@ -460,9 +475,12 @@ def extract_pptx(pptx_path, output_dir):
     md = []
     md.append(f"**Slides:** {total_slides}\n")
 
-    figures_dir = os.path.join(output_dir, "figures")
-    os.makedirs(figures_dir, exist_ok=True)
-    figures = extract_office_figures(pptx_path, figures_dir, "ppt/media")
+    if NO_IMAGE:
+        figures = []
+    else:
+        figures_dir = os.path.join(output_dir, "figures")
+        os.makedirs(figures_dir, exist_ok=True)
+        figures = extract_office_figures(pptx_path, figures_dir, "ppt/media")
 
     for i, slide in enumerate(prs.slides):
         snum = i + 1
@@ -516,17 +534,18 @@ def extract_image(img_path, output_dir):
     img = Image.open(img_path)
     w, h = img.size
 
-    figures_dir = os.path.join(output_dir, "figures")
-    os.makedirs(figures_dir, exist_ok=True)
-    out_name = f"fig_1{os.path.splitext(img_path)[1]}"
-    out = os.path.join(figures_dir, out_name)
-    img.save(out)
+    md = [f"**Type:** Image ({img.format}) | **Dimensions:** {w}x{h}\n"]
+    figures_count = 0
+    if not NO_IMAGE:
+        figures_dir = os.path.join(output_dir, "figures")
+        os.makedirs(figures_dir, exist_ok=True)
+        out_name = f"fig_1{os.path.splitext(img_path)[1]}"
+        out = os.path.join(figures_dir, out_name)
+        img.save(out)
+        md.append(f"![](figures/{out_name})\n")
+        figures_count = 1
 
-    md = [
-        f"**Type:** Image ({img.format}) | **Dimensions:** {w}x{h}\n",
-        f"![](figures/{out_name})\n",
-    ]
-    return "\n".join(md), [f"- Dimensions: {w}x{h}", "- Figures: 1"]
+    return "\n".join(md), [f"- Dimensions: {w}x{h}", f"- Figures: {figures_count}"]
 
 
 # ---------------------------------------------------------------------------
@@ -664,7 +683,8 @@ def extract_folder(folder_path, output_dir):
             if ext in extractable:
                 sub_out = os.path.join(output_dir, os.path.splitext(rel)[0].replace("/", "_"))
                 os.makedirs(sub_out, exist_ok=True)
-                os.makedirs(os.path.join(sub_out, "figures"), exist_ok=True)
+                if not NO_IMAGE:
+                    os.makedirs(os.path.join(sub_out, "figures"), exist_ok=True)
                 ensure_deps_for(ext)
                 extractors = {".pdf": extract_pdf, ".docx": extract_docx, ".pptx": extract_pptx}
                 content, _ = extractors[ext](fpath, sub_out)
@@ -707,22 +727,31 @@ TEXT_EXTS = {
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python extract_doc.py <input_path> [output_dir]")
-        print("  input_path: file or folder")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Extract structured content from PDF / DOCX / PPTX / images / folders.",
+    )
+    parser.add_argument("input_path", help="File or folder to extract")
+    parser.add_argument("output_dir", nargs="?", default=None,
+                        help="Output directory (default: <input>_extracted next to input)")
+    parser.add_argument("--no-image", action="store_true",
+                        help="Skip figure extraction; produce text-only content.md (no figures/ dir, no figure references)")
+    args = parser.parse_args()
 
-    input_path = sys.argv[1]
+    global NO_IMAGE
+    NO_IMAGE = args.no_image
+
+    input_path = args.input_path
     if not os.path.exists(input_path):
         print(f"Error: Not found: {input_path}")
         sys.exit(1)
 
     base = os.path.basename(input_path.rstrip("/"))
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
+    output_dir = args.output_dir or os.path.join(
         os.path.dirname(input_path) or ".", f"{base}_extracted"
     )
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(os.path.join(output_dir, "figures"), exist_ok=True)
+    if not NO_IMAGE:
+        os.makedirs(os.path.join(output_dir, "figures"), exist_ok=True)
 
     is_folder = os.path.isdir(input_path)
 

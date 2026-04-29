@@ -20,12 +20,10 @@ Why this exists: figure inspection is the slowest step, and many downstream cons
 
 ## Output
 
-Written to `<output_dir>` provided by the caller:
+Written to `<output_dir>` provided by the caller. Which files appear depends on the mode (see Modes table above). Conventions:
 
-- `content.md` — text organized by source page/slide boundaries; tables as markdown; figure references inline at source positions (default mode only); Figure Index table at the end (default only); extraction notes when something was uncertain.
-- `figures/` — extracted images named `p{page}_fig_{N}.png` (PDF) or `fig_{N}.png` (DOCX/PPTX). Default mode only.
-
-Figures below 200px on either side or 80,000 px² in area are filtered (decorative/icon noise). Duplicates (same embedded object reused across pages) are deduplicated.
+- `content.md` — text organized by source page/slide boundaries; tables as markdown; in default mode, inline figure references at source positions plus a Figure Index table at the end; Extraction notes section when something was uncertain.
+- `figures/` (default mode only) — `p{page}_fig_{N}.png` (PDF) or `fig_{N}.png` (DOCX/PPTX). Filtered: figures below 200px on either side or 80,000 px² in area are dropped (decorative/icon noise); duplicates (same embedded object reused across pages) are deduplicated.
 
 ## Workflow
 
@@ -40,16 +38,22 @@ For pure images, `Read` is the entire extraction — describe all visible text, 
 ### 2. Script extraction
 
 ```
+# default — text + figures
 python ~/.cursor/skills/file-content-extraction/extract_doc.py <input_path> <output_dir>
+
+# no_image — text only, ~14× faster (skips pdfimages decode + PIL filtering)
+python ~/.cursor/skills/file-content-extraction/extract_doc.py <input_path> <output_dir> --no-image
 ```
 
-Produces `content.md` + `figures/`. Read `content.md` fully. Compare against Step 1 — note discrepancies in the Extraction notes section.
+Pick the invocation by the caller's `no_image` parameter. The script handles the difference internally: with `--no-image` it never creates `figures/`, never inserts `![…]` references, and never writes the Figure Index. No post-processing needed.
+
+Read `content.md` fully. Compare against Step 1 — note discrepancies in the Extraction notes section.
 
 ### 3. Figure inspection — **default mode only**
 
 Use `Read` on every file in `figures/`. For each, describe what it shows (chart axes, labels, layout, what it illustrates) and verify the description matches the surrounding text in `content.md`. The figure name maps to its location in the page layout — use it to confirm the inline reference is positioned correctly.
 
-In `no_image` mode, skip Step 3 entirely. After Step 2, delete the `figures/` directory and remove any `![…](figures/…)` lines and the Figure Index table from `content.md`.
+Skip this step entirely when `--no-image` was used in Step 2 — there is no `figures/` directory to inspect.
 
 ### Type-specific notes
 
@@ -66,6 +70,6 @@ In `no_image` mode, skip Step 3 entirely. After Step 2, delete the `figures/` di
 
 3. **Preserve source structure.** Keep page/slide boundaries intact. Do not merge sections, reorder, or impose a topical organization — the `file-extractor` agent owns reorganization.
 
-4. **No-image mode is binary.** When `no_image: true`, the output dir contains only `content.md` — no `figures/`, no figure references, no Figure Index. When `no_image: false`, every figure file in `figures/` must be referenced from `content.md`. Never produce a half-state.
+4. **No half-states.** Either both modes' contracts hold or neither does. In default mode, every figure file in `figures/` must be referenced from `content.md` and vice versa; in `no_image` mode, no figure references and no `figures/` exist. A `![…]` line pointing at a missing file (or a stray `figures/` dir with no references) breaks downstream consumers silently.
 
 5. **Flag uncertainty.** Add an Extraction notes section at the end of `content.md` for anything you suspect is missing or garbled (failed equation, broken table, unreadable scan). Better to flag than to hide.

@@ -1,123 +1,80 @@
 # Version History
 
-## Unreleased
+## v2.7 (2026-04-28)
 
-### 2026-04-28 — Skills tables: reorder columns to `Skill | Path | Trigger`
+**Skills-first subagent design + repository de-vendors official Anthropic skills.**
 
-Readability fix. The skill name is what a reader scans for; putting it in column 1 (and the path adjacent) lets the trigger description run as long as it needs without burying the skill identifier.
+Subagents now treat skills (mechanical layers like `pdf`, `webapp-testing`, `write-report`) as first-class operating contracts: each subagent's prompt opens with a `## Skills-first` section listing its triggers, and `Rule 1` of every relevant subagent is "Skills-first." The orchestrator intentionally has no global skills table — routing-by-deliverable-type stays implicit via subagent `description` fields, and skill resolution happens inside the chosen subagent (Rule 6: subagents are independent modules).
 
-Applied to: `executor.md`, `debugger.md`, `qa-specialist.md`, `report-writer.md`, `frontend-engineer.md` (last column header renamed `Concern` → `Trigger` for consistency? — kept as `Concern` since that subagent's framing predates the trigger-based pattern; column order normalized only).
+In parallel, the project no longer vendors Anthropic-published skills (`frontend-design`, `pptx`, `theme-factory`, `web-artifacts-builder`, `webapp-testing`). They are referenced as external dependencies installed at `~/.cursor/skills/<name>/` via Anthropic's own distribution; README documents the dependency list. Project-owned skills (`file-content-extraction`, `webpage-content-extraction`, `write-report`) remain vendored.
 
-`file-extractor.md` skipped — its routing table is a 2D matrix (source type × `no_image`), not the standard three-column trigger/skill/path shape, so reordering would break the matrix semantics.
+#### Skills-first design
 
-#### Files Modified
+Per-subagent Skills tables (`Skill | Path | Trigger`):
 
+- **executor** — `pdf`, `docx`, `pptx`, `xlsx`, `file-content-extraction`, `webpage-content-extraction`, `webapp-testing`, plus the four `parallel-*` research/extraction skills. Research-depth defaults inlined into the trigger column: `parallel-web-search` → `agentic` (only `fast` when `<parameters><speed>fast</speed>`); `parallel-deep-research` → `ultra`. `parallel-*` paths resolved via `Glob` since the plugin cache directory contains a commit SHA. Overlap-routing absorbed into Rule 1.
+- **qa-specialist** — `file-content-extraction` (PDF), `pptx`, `docx`, `xlsx`, `webapp-testing`, plus `frontend-design` + `theme-factory` for when the orchestrator dispatches qa-specialist against a frontend deliverable directly (bypassing `frontend-engineer`'s internal loop).
+- **report-writer** — `write-report` (mandatory mechanical layer), `file-content-extraction` (final-pass page render for self-QA), `pdf` (manipulating produced PDFs).
+- **debugger** — `webapp-testing` (reproducing browser bugs).
+- **file-extractor** — Routing-by-source-type table (URL / PDF/DOCX/PPTX / image / code-text / directory) crossed with `no_image` parameter. The 2D matrix is structurally different from the three-column shape used elsewhere and was kept as-is.
+- **frontend-engineer** — pre-existing skills table (`frontend-design`, `theme-factory`, `web-artifacts-builder`, `webapp-testing`) brought into the same `Skills-first` naming and Rule 1 pattern.
+- **verifier** — no skill applies to read-only code review; unchanged.
+
+`## Skills-first` section sits at the top of every relevant subagent (immediately after the role paragraph, before `## Task Input`), opens with a bold imperative, and is reinforced by `Rule 1: Skills-first` in `## Rules`. Rule lists were renumbered accordingly; one stale cross-reference (`frontend-engineer` "Rule 9" → "Rule 10") fixed.
+
+#### Skill-table column order
+
+Final shape `Skill | Path | Trigger` — the skill name is what a reader scans for, so it leads. `frontend-engineer`'s table kept its `Concern` header but column order was normalized.
+
+#### `file-extractor` corrections
+
+- Description and `agent.md` `<team>` row claimed "Initialize-only," but Step 5's `NEEDS_MORE_CONTEXT` loop has been calling `file-extractor` for some time. Triaged as "stale or factually wrong" per the `write-agent-file` skill and corrected: now reads "Primarily used in Initialize…; also in Step 5 `NEEDS_MORE_CONTEXT` loop when a producer needs additional source material extracted."
+- New `no_image` parameter in `<parameters>`: when `true`, produces text-only output (`content.md` + `summary.md` only — no `figures/`, no inline figure refs). For URLs, `no_image: true` short-circuits the skill and calls `parallel-cli extract --full-content` directly. Drove updates to the routing table, output schema, workflow steps, and Rules 5–6 (figure handling guarded on `no_image: false`).
+
+#### Vendoring policy change
+
+Five Anthropic-published skills removed from `skills/` (no functional change — they remain available at `~/.cursor/skills/<name>/` via Anthropic's own install path):
+
+- `frontend-design`
+- `pptx`
+- `theme-factory`
+- `web-artifacts-builder`
+- `webapp-testing`
+
+`README.md` repository-structure tree updated to show only project-owned skills. New `External skill dependencies` section enumerates every non-vendored skill the subagents reference (Anthropic skills + the four `parallel-*` plugin skills) and which subagent depends on each.
+
+#### Skill content extensions (project-owned skills)
+
+- `skills/file-content-extraction/SKILL.md` and `extract_doc.py` — incremental support for the `no_image: true` mode.
+- `skills/webpage-content-extraction/SKILL.md` — sibling updates aligned with the same parameter.
+
+#### Rule 6 hygiene + write-agent-file review
+
+A consolidated review pass earlier in the cycle:
+
+- `report-writer.md` and `debugger.md` descriptions stripped of references to sibling subagents (Rule 6 violation: "subagents are independent modules").
+- `frontend-engineer.md` lost two hardcoded environment paths (the `cursor-multiagent-system/results/current/...` fallback and the macOS Chrome binary path) — both delegated back to the orchestrator (Rule 6) or the `webapp-testing` skill.
+- Duplicate `Output Format` + `Documentation` sections in `verifier`, `qa-specialist`, `debugger` merged to a single canonical schema each.
+- Several rule-list consolidations across `executor`, `frontend-engineer`, `debugger`, `qa-specialist` removed redundant rules and folded principle conflicts into single keyed-by-context rules. Net subagent line count: 642 → 595 (−47) for the consolidation pass alone, before the Skills-first additions.
+- `executor` Rule 1 explicitly requires reporting pre-existing issues spotted in touched code; out-of-scope issues are reported, not fixed, and never silently dropped.
+
+#### Files Modified (cumulative across the cycle)
+
+- `core/agent.md` (file-extractor `<team>` row)
 - `core/subagents/executor.md`
 - `core/subagents/debugger.md`
+- `core/subagents/verifier.md`
 - `core/subagents/qa-specialist.md`
-- `core/subagents/report-writer.md`
-- `core/subagents/frontend-engineer.md`
-- `history.md` (this entry)
-
-No deploy / no archive (log-only).
-
-### 2026-04-28 — qa-specialist: add `frontend-design` and `theme-factory` for direct frontend QA
-
-When the orchestrator dispatches `qa-specialist` against a frontend deliverable directly (skipping `frontend-engineer`'s internal loop), the existing `webapp-testing` row only covered rendering and capture — aesthetic judgment and theme adherence had no canonical reference. Added:
-
-- `frontend-design` — aesthetic direction, generic-vs-distinctive judgment, AI-slop anti-patterns
-- `theme-factory` — theme consistency (palette + font pairing across components)
-
-Updated the trailing paragraph from a `webapp-testing`-only carve-out to a three-skill bundle for direct frontend QA dispatches.
-
-#### Files Modified
-
-- `core/subagents/qa-specialist.md` (+2 table rows; trailing paragraph rewritten)
-- `history.md` (this entry)
-
-No deploy / no archive (log-only).
-
-### 2026-04-28 — Executor Skills-first: inline `parallel-*` defaults; merge overlap-routing into Rule 1
-
-Three table-side notes that lived as separate paragraphs after the executor Skills table got tighter homes:
-
-- **Research depth defaults** (`agentic` for `parallel-web-search`, `ultra` for `parallel-deep-research`) inlined into the trigger column of the corresponding rows — they belong to the skill choice, not the file.
-- **`parallel-*` Glob resolution** collapsed to a one-line footnote (`†`) below the table; the skills live in a plugin cache whose path contains a commit SHA, so the executor still needs the resolution recipe somewhere — but it is metadata, not policy.
-- **Routing-when-triggers-overlap** absorbed into Rule 1 (Skills-first). One rule for one decision; saves a rule slot and removes the prose-vs-rule split.
-
-Net change: `executor.md` 62 → 58 lines (−4). No behavior change for downstream consumers; same triggers, same defaults, same overlap policy.
-
-#### Files Modified
-
-- `core/subagents/executor.md`
-- `history.md` (this entry)
-
-No deploy / no archive (log-only).
-
-### 2026-04-28 — Skills-first: rename sections, hoist before Task Input, add Rule 1
-
-Follow-up to the previous entry. Two changes for human readability and explicit prioritization:
-
-1. **Section rename + position.** `## Skills (read first when applicable)` → `## Skills-first`, hoisted to immediately after the role paragraph (before `## Task Input`) in `executor`, `debugger`, `qa-specialist`, `report-writer`, `file-extractor`. `frontend-engineer` keeps its existing position (after `## Task Input`) because it sits before `## Routing`, which depends on the Skills section. All Skills-first sections now open with a bold imperative ("Before X, scan / read…").
-2. **Skills-first as Rule 1.** Every subagent with a Skills-first section now has `Rule 1: Skills-first` at the top of `## Rules`, in addition to the section itself. Surfacing it twice — once in dedicated section, once in the Rules list — is intentional; this is a high-value rule and Rules sections are scanned at decision points where Skills-first must trigger first.
-
-`verifier` unchanged (no skills apply to read-only code review).
-
-#### Side effects
-
-- `executor` Rules renumbered 1→7 (was 1→6).
-- `debugger` Rules renumbered 1→6 (was 1→5).
-- `qa-specialist` Rules renumbered 1→10 (was 1→9). The Skills-first section's "Rule 4 violation" cross-reference replaced with a direct phrasing ("violates the exhaustive-not-sampled rule below") to avoid renumber drift.
-- `report-writer` Rule 2 ("Skill owns mechanics") absorbed into new Rule 1 ("Skills-first"); Rules now 1→3.
-- `file-extractor` Rules renumbered 1→9 (was 1→8).
-- `frontend-engineer` Rules renumbered 1→10 (was 1→9); the in-body "(Rule 9)" reference for missing `<output_dir>` updated to "(Rule 10)".
-
-#### Files Modified
-
-- `core/subagents/executor.md`
-- `core/subagents/debugger.md`
-- `core/subagents/qa-specialist.md`
-- `core/subagents/report-writer.md`
 - `core/subagents/file-extractor.md`
+- `core/subagents/report-writer.md`
 - `core/subagents/frontend-engineer.md`
-- `history.md` (this entry)
-
-No deploy / no archive (log-only).
-
-### 2026-04-28 — Skills-first subagents: per-subagent Skills tables; fix `file-extractor` Initialize-only claim
-
-Make subagents skills-first: each subagent declares the skills it must read first when its triggers match. Orchestrator (`agent.md`) intentionally NOT given a global skills table — routing-by-deliverable-type stays implicit via subagent descriptions. Also fixes `file-extractor`'s "Initialize-only" claim, which contradicted Step 5's `NEEDS_MORE_CONTEXT` loop in `agent.md` line 113 and `file-extractor`'s own description.
-
-#### Changes
-
-- **`agent.md`** — `<team>` row for `file-extractor` corrected: "Initialize-only" → "Primary use in Initialize…; also in Step 5 `NEEDS_MORE_CONTEXT` loop when a producer needs additional source material extracted." Aligns with workflow Step 5.
-- **`core/subagents/file-extractor.md`** — frontmatter description corrected (same fix as above); `## Extraction Skills` section renamed `## Skills (read first when applicable)` and table headers normalized to `Trigger | Skill | Path` for consistency with the new pattern in other subagents. Rule 4 wording updated accordingly.
-- **`core/subagents/executor.md`** — new `## Skills` section (11 triggers) covering `pdf`, `docx`, `pptx`, `xlsx`, `file-content-extraction`, `webpage-content-extraction`, `webapp-testing`, and the four `parallel-*` research/extraction skills. Research-depth defaults explicitly stated: `parallel-web-search` → `agentic` (only `fast` when `<parameters><speed>fast</speed>`); `parallel-deep-research` → `ultra` by default. `parallel-*` paths resolved via `Glob` since the plugin cache directory contains a commit SHA. Routing rule for overlapping triggers spelled out.
-- **`core/subagents/qa-specialist.md`** — new `## Skills` section (5 triggers: PDF / `.pptx` / `.docx` / `.xlsx` / web). Old inline "For PDF outputs: use `file-content-extraction` skill at …" line in Full Mode workflow replaced with a generic "drive the inspection through the matching skill from the Skills table above" — single source of truth.
-- **`core/subagents/report-writer.md`** — single `write-report` reference promoted to a `## Skills` table that also lists `file-content-extraction` (final-pass page render for self-QA) and `pdf` (manipulating produced PDFs). Rule 2 hardcoded path replaced with reference to the Skills table.
-- **`core/subagents/debugger.md`** — new `## Skills` section with one trigger (`webapp-testing` for reproducing browser bugs).
-- **`core/subagents/frontend-engineer.md`** — unchanged (already had a Skills table from a prior version).
-- **`core/subagents/verifier.md`** — unchanged (no skill applies to read-only code review).
-
-#### Rationale
-
-User decision: skills are exposed to subagents only, not duplicated into a global `<skills>` table on `agent.md`. Subagent files remain independent modules (Rule 6); each owns the list of skills it must consult. Main agent routes by deliverable type (the existing implicit mechanism in `<team>`); skill resolution happens inside the chosen subagent.
-
-The `file-extractor` "Initialize-only" wording was a stale claim — Step 5's `NEEDS_MORE_CONTEXT` loop has been calling `file-extractor` since v3.x. Triaged as "stale or factually wrong" per the `write-agent-file` skill, fixed in the same change.
-
-Executor research defaults (`agentic` for search, `ultra` for deep research) were specified explicitly so the subagent does not silently downgrade to `fast` when latency-sensitive paths are not actually requested.
-
-#### Files Modified
-
-- `core/agent.md` (1 line edit, file-extractor team row)
-- `core/subagents/executor.md` (+25 lines)
-- `core/subagents/qa-specialist.md` (+13 lines, −1 inline)
-- `core/subagents/report-writer.md` (+8 lines, −1 inline)
-- `core/subagents/debugger.md` (+8 lines)
-- `core/subagents/file-extractor.md` (header rename, table reformat)
-- `history.md` (this entry)
-
-No deploy / no archive (log-only). README unchanged — public capabilities and workflow not affected, only subagent-internal routing of mechanical layers.
+- `skills/file-content-extraction/SKILL.md`
+- `skills/file-content-extraction/extract_doc.py`
+- `skills/webpage-content-extraction/SKILL.md`
+- `skills/{frontend-design,pptx,theme-factory,web-artifacts-builder,webapp-testing}/` — all deleted (de-vendored)
+- `README.md` (skills tree + new External skill dependencies section)
+- `history.md` (this entry; merges seven Unreleased log-only entries from 2026-04-28)
+- `iterations/v2.7/files/` — full source snapshot (created by `deploy.sh --archive v2.7`)
 
 ### 2026-04-28 — Apply `write-agent-file` skill review to all `core/subagents/*.md`
 

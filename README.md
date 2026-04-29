@@ -56,15 +56,10 @@ cursor-multiagent-system/
 ├── core/                          # Agent definitions (source of truth)
 │   ├── agent.md                   #   Orchestrator (-> ~/.cursor/commands/)
 │   └── subagents/                 #   Subagent definitions (-> ~/.cursor/agents/)
-├── skills/                        # Project-tracked skills (-> ~/.cursor/skills/ via deploy.sh)
-│   ├── file-content-extraction/   #   PDF/DOCX/PPTX extraction (file-extractor)
+├── skills/                        # Project-owned skills (-> ~/.cursor/skills/ via deploy.sh)
+│   ├── file-content-extraction/   #   PDF/DOCX/PPTX extraction (file-extractor, qa-specialist)
 │   ├── webpage-content-extraction/#   Web page extraction (file-extractor)
-│   ├── write-report/              #   Report writing standards, template cache, build scripts (report-writer)
-│   ├── pptx/                      #   Slide creation/editing skill
-│   ├── frontend-design/           #   Aesthetic direction (frontend-engineer)
-│   ├── theme-factory/             #   Color/font theme presets (frontend-engineer)
-│   ├── web-artifacts-builder/     #   React + Tailwind + shadcn scaffold (frontend-engineer)
-│   └── webapp-testing/            #   Playwright testing toolkit (frontend-engineer)
+│   └── write-report/              #   Report writing standards, template cache, build scripts (report-writer)
 ├── scripts/
 │   └── deploy.sh                  #   Deploy core/ and skills/ to Cursor
 ├── history.md                     # Version history (append-only)
@@ -83,7 +78,25 @@ Deploy agent definitions and skills to Cursor IDE:
 This syncs:
 - `core/agent.md` -> `~/.cursor/commands/agent.md`
 - `core/subagents/*.md` -> `~/.cursor/agents/`
-- `skills/*/` -> `~/.cursor/skills/`
+- `skills/*/` -> `~/.cursor/skills/` (project-owned skills only)
+
+### External skill dependencies
+
+Subagents also reference skills the project does **not** vendor — these must be present at `~/.cursor/skills/<name>/SKILL.md` before deploying. Missing skills do not break deployment, but the subagent that needs them will fall back to ad-hoc implementation (defeating the skills-first design).
+
+| Skill | Used by | How to install |
+|-------|---------|----------------|
+| `pdf` | executor, report-writer | Anthropic Claude skills (symlink from `~/.claude/skills/pdf`) |
+| `docx` | executor, qa-specialist | Anthropic Claude skills |
+| `xlsx` | executor, qa-specialist | Anthropic Claude skills |
+| `pptx` | executor, qa-specialist | Anthropic Claude skills |
+| `frontend-design` | frontend-engineer, qa-specialist | Anthropic Claude skills |
+| `theme-factory` | frontend-engineer, qa-specialist | Anthropic Claude skills |
+| `web-artifacts-builder` | frontend-engineer | Anthropic Claude skills |
+| `webapp-testing` | frontend-engineer, qa-specialist, debugger | Anthropic Claude skills |
+| `parallel-web-search`, `parallel-deep-research`, `parallel-web-extract`, `parallel-data-enrichment` | executor | Auto-installed by the Parallel Cursor plugin (path is resolved via `Glob` since it contains a commit SHA) |
+
+The Anthropic Claude skills are installed at `~/.claude/skills/` and surfaced via symlinks inside `~/.cursor/skills/`. The project does not pin or vendor these — Anthropic-side updates are picked up automatically.
 
 ## Usage
 
