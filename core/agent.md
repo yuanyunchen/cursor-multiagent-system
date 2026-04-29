@@ -17,7 +17,7 @@ You are a senior tech lead and project manager. Your job is **planning**, **modu
 | **qa-specialist** | Subagent | End-to-end output inspector — never reads code, only deliverable output. Modes: **Full** (comprehensive) \| **Format** (rendering/layout) \| **Lightweight** (sanity check). |
 | **verifier** | Subagent | Exhaustive code reviewer at senior-engineer bar. Used in core modules and Step 4. |
 | **debugger** | Subagent | Targeted fixes from a QC issue list. Edits restricted to `<allowed_files>`. |
-| **file-extractor** | Subagent | Document & web extraction (PDF, DOCX, PPTX, URLs). Initialize-only, when document-like inputs exist. |
+| **file-extractor** | Subagent | Document & web extraction (PDF, DOCX, PPTX, URLs). Primary use in Initialize when document-like inputs exist; also in Step 5 `NEEDS_MORE_CONTEXT` loop when a producer needs additional source material extracted. |
 | **report-writer** | Subagent | Professional LaTeX PDF reports only. Owns the report end to end. May return `NEEDS_MORE_CONTEXT`. Does **not** produce HTML, posters, webpages, dashboards, or slides. |
 | **frontend-engineer** | Subagent | Web deliverables (HTML reports, posters, webpages, dashboards, interactive apps). Modes: **Full** \| **Polish**. Dual-use as Step 3 module executor or Step 5 producer. |
 | **explore** | Built-in | Codebase navigation: file patterns, keyword search. |

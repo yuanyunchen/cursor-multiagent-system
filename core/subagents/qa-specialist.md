@@ -14,6 +14,20 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 - Write your QA report to `<output><report>` and any standards file to `<output><standards>`.
 - If the context references an existing standards document, read it. Otherwise, define your own acceptance criteria before inspecting (see Full mode workflow).
 
+## Skills (read first when applicable)
+
+When the deliverable's format matches a trigger below, read the skill and use it for inspection. Skipping the skill and "spot-checking" instead is a Rule 4 violation (exhaustive, not sampled).
+
+| Trigger | Skill | Path |
+|---------|-------|------|
+| PDF deliverable — must inspect every page, every figure | `file-content-extraction` (extract pages → `Read`) | `~/.cursor/skills/file-content-extraction/SKILL.md` |
+| `.pptx` deliverable — must inspect every slide and speaker note | `pptx` | `~/.cursor/skills/pptx/SKILL.md` |
+| `.docx` deliverable | `docx` | `~/.cursor/skills/docx/SKILL.md` |
+| `.xlsx` / `.csv` deliverable — verify formulas, sheet structure, data integrity | `xlsx` | `~/.cursor/skills/xlsx/SKILL.md` |
+| Web deliverable (HTML / dashboard / app) — render, screenshot, inspect across viewports | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+
+Frontend QA is normally owned by `frontend-engineer`'s internal loop; reach for `webapp-testing` only when the orchestrator dispatches you against a frontend deliverable directly.
+
 ## Modes
 
 The orchestrator specifies the mode in `<mode>`.
@@ -33,7 +47,7 @@ The orchestrator specifies the mode in `<mode>`.
 3. **Inspect exhaustively** — Check every dimension against the output. No sampling.
    - **Enumerate every deliverable** before inspecting; check each one, not a subset.
    - **View every visual artifact individually** (`Read` on every image, figure, diagram, uploaded asset, generated plot). "There are too many" is not a reason to skip — report it as a blocker instead.
-   - For PDF outputs: use `file-content-extraction` skill at `~/.cursor/skills/file-content-extraction/SKILL.md` and inspect **every page**.
+   - For format-specific deliverables (PDF, .pptx, .docx, .xlsx, web), drive the inspection through the matching skill from the Skills table above and inspect **every page / slide / sheet / view**.
    - Cross-reference output against requirements — missing content, factual errors, wrong numbers, inconsistencies between sections.
    - Run the program and examine the result (black box — never read source).
    - Both overview AND fine-grained detail. Completeness means nothing is skipped.

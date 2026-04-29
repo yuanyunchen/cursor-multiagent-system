@@ -13,6 +13,14 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 - Treat `<allowed_files>` as the only files you may modify.
 - Write your fix report to `<output><report>`.
 
+## Skills (read first when applicable)
+
+| Trigger | Skill | Path |
+|---------|-------|------|
+| Reproducing or verifying a frontend / browser bug requires rendering or DOM interaction | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+
+Skills are mechanical layers — read the file, follow it, do not paraphrase.
+
 ## Workflow
 
 1. Read the issue list and understand each problem

@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+### 2026-04-28 — Skills-first subagents: per-subagent Skills tables; fix `file-extractor` Initialize-only claim
+
+Make subagents skills-first: each subagent declares the skills it must read first when its triggers match. Orchestrator (`agent.md`) intentionally NOT given a global skills table — routing-by-deliverable-type stays implicit via subagent descriptions. Also fixes `file-extractor`'s "Initialize-only" claim, which contradicted Step 5's `NEEDS_MORE_CONTEXT` loop in `agent.md` line 113 and `file-extractor`'s own description.
+
+#### Changes
+
+- **`agent.md`** — `<team>` row for `file-extractor` corrected: "Initialize-only" → "Primary use in Initialize…; also in Step 5 `NEEDS_MORE_CONTEXT` loop when a producer needs additional source material extracted." Aligns with workflow Step 5.
+- **`core/subagents/file-extractor.md`** — frontmatter description corrected (same fix as above); `## Extraction Skills` section renamed `## Skills (read first when applicable)` and table headers normalized to `Trigger | Skill | Path` for consistency with the new pattern in other subagents. Rule 4 wording updated accordingly.
+- **`core/subagents/executor.md`** — new `## Skills` section (11 triggers) covering `pdf`, `docx`, `pptx`, `xlsx`, `file-content-extraction`, `webpage-content-extraction`, `webapp-testing`, and the four `parallel-*` research/extraction skills. Research-depth defaults explicitly stated: `parallel-web-search` → `agentic` (only `fast` when `<parameters><speed>fast</speed>`); `parallel-deep-research` → `ultra` by default. `parallel-*` paths resolved via `Glob` since the plugin cache directory contains a commit SHA. Routing rule for overlapping triggers spelled out.
+- **`core/subagents/qa-specialist.md`** — new `## Skills` section (5 triggers: PDF / `.pptx` / `.docx` / `.xlsx` / web). Old inline "For PDF outputs: use `file-content-extraction` skill at …" line in Full Mode workflow replaced with a generic "drive the inspection through the matching skill from the Skills table above" — single source of truth.
+- **`core/subagents/report-writer.md`** — single `write-report` reference promoted to a `## Skills` table that also lists `file-content-extraction` (final-pass page render for self-QA) and `pdf` (manipulating produced PDFs). Rule 2 hardcoded path replaced with reference to the Skills table.
+- **`core/subagents/debugger.md`** — new `## Skills` section with one trigger (`webapp-testing` for reproducing browser bugs).
+- **`core/subagents/frontend-engineer.md`** — unchanged (already had a Skills table from a prior version).
+- **`core/subagents/verifier.md`** — unchanged (no skill applies to read-only code review).
+
+#### Rationale
+
+User decision: skills are exposed to subagents only, not duplicated into a global `<skills>` table on `agent.md`. Subagent files remain independent modules (Rule 6); each owns the list of skills it must consult. Main agent routes by deliverable type (the existing implicit mechanism in `<team>`); skill resolution happens inside the chosen subagent.
+
+The `file-extractor` "Initialize-only" wording was a stale claim — Step 5's `NEEDS_MORE_CONTEXT` loop has been calling `file-extractor` since v3.x. Triaged as "stale or factually wrong" per the `write-agent-file` skill, fixed in the same change.
+
+Executor research defaults (`agentic` for search, `ultra` for deep research) were specified explicitly so the subagent does not silently downgrade to `fast` when latency-sensitive paths are not actually requested.
+
+#### Files Modified
+
+- `core/agent.md` (1 line edit, file-extractor team row)
+- `core/subagents/executor.md` (+25 lines)
+- `core/subagents/qa-specialist.md` (+13 lines, −1 inline)
+- `core/subagents/report-writer.md` (+8 lines, −1 inline)
+- `core/subagents/debugger.md` (+8 lines)
+- `core/subagents/file-extractor.md` (header rename, table reformat)
+- `history.md` (this entry)
+
+No deploy / no archive (log-only). README unchanged — public capabilities and workflow not affected, only subagent-internal routing of mechanical layers.
+
 ### 2026-04-28 — Apply `write-agent-file` skill review to all `core/subagents/*.md`
 
 Internal-only review pass: dedup duplicate report-structure sections, delete filler rules, fix Rule 6 cross-reference violations, drop hardcoded environment paths. No agent capability or workflow change — `README.md` intentionally not updated. Total: 642 → 595 lines (−47) across the seven subagent files.

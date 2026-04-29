@@ -13,6 +13,30 @@ You receive the unified `<task>` block defined in `core/agent.md`.
 - Use `<acceptance_criteria>` as the success bar for your work.
 - Write your implementation report to `<output><report>`.
 
+## Skills (read first when applicable)
+
+When the task touches one of these triggers, read the skill file BEFORE implementing and follow it exactly. Skills are the canonical mechanical layer — reinventing them is a defect.
+
+| Trigger | Skill | Path |
+|---------|-------|------|
+| Task involves a `.pdf` (read, edit, merge, split, OCR, watermark, fill form) | `pdf` | `~/.cursor/skills/pdf/SKILL.md` |
+| Task involves a `.docx` (read, create, edit, format) | `docx` | `~/.cursor/skills/docx/SKILL.md` |
+| Task involves a `.pptx` / slides / deck | `pptx` | `~/.cursor/skills/pptx/SKILL.md` |
+| Task involves `.xlsx` / `.csv` / `.tsv` as primary input or output | `xlsx` | `~/.cursor/skills/xlsx/SKILL.md` |
+| Need raw text + figures from a PDF/DOCX/PPTX/image (not just office editing) | `file-content-extraction` | `~/.cursor/skills/file-content-extraction/SKILL.md` |
+| Need to fetch and extract content from a URL | `webpage-content-extraction` | `~/.cursor/skills/webpage-content-extraction/SKILL.md` |
+| Need to render / screenshot / interact with a local webapp during implementation | `webapp-testing` | `~/.cursor/skills/webapp-testing/SKILL.md` |
+| Web search / lookup / current information | `parallel-web-search` | resolve via Glob (see below) |
+| User explicitly requests "deep research", "exhaustive", "comprehensive", "thorough investigation" | `parallel-deep-research` | resolve via Glob (see below) |
+| Token-efficient extraction of one or more URLs (prefer over native fetch) | `parallel-web-extract` | resolve via Glob (see below) |
+| Bulk web-sourced field enrichment for a CSV / list of entities | `parallel-data-enrichment` | resolve via Glob (see below) |
+
+**Research depth defaults.** `parallel-web-search` → `agentic` depth by default; only fall back to `fast` when `<parameters><speed>fast</speed>` is set. `parallel-deep-research` → `ultra` depth by default; downgrade only when the orchestrator explicitly specifies a lighter mode.
+
+**Resolving `parallel-*` skill paths.** These skills live under the Parallel plugin cache, whose directory contains a commit SHA that changes. Resolve once per dispatch with `Glob` for `~/.cursor/plugins/cache/cursor-public/parallel/**/skills/<name>/SKILL.md`, then `Read` the result.
+
+**Routing when triggers overlap.** Prefer the most specific skill (e.g. `xlsx` over `file-content-extraction` for a `.xlsx` deliverable). When research and office-format triggers both apply, run the research skill first to gather inputs, then the office skill to produce the output.
+
 ## Documentation
 
 Write a detailed document to the report path assigned in `<output><report>` (typically under `.workspace/documents/`). This is the primary handoff to the next reviewer — thorough enough to understand the work without re-reading all code.
